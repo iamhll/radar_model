@@ -8,7 +8,7 @@
 %-------------------------------------------------------------------------------
   %
   %  Modified       : 2020-05-21 by HLL
-  %  Description    : updated according to survey bfm
+  %  Description    : updated according to survey dbf
   %
 %-------------------------------------------------------------------------------
 
@@ -92,9 +92,8 @@ for idxRnd = 1:NUMB_RND
     %% prepare datSig
     datSig = 0;
     for idxObj = 1:NUMB_OBJ
-        datAmp = 10^(DATA_POW_OBJ(idxObj) / 20) / 2^0.5 * DATA_COE_WIN;
+        datAmp = 10^(DATA_POW_OBJ(idxObj) / 20) / 2^0.5;
         datPha = exp(-1i * 2 * pi * rand);
-        %datPha = exp(-1i * 2 * pi * 0);
         datSig = datSig + datAmp .* exp(1i * 2 * pi * DATA_DIS_ANT * sin(DATA_ANG_OBJ(idxObj) / 180 * pi)) * datPha;
     end
 
@@ -103,10 +102,18 @@ for idxRnd = 1:NUMB_RND
     datRSum = 0;
     for idxSmp = 1:NUMB_SMP
         datRTmp = awgn(datSig, DATA_SNR, 'measured');
+        datRTmp = datRTmp .* DATA_COE_WIN;
         datRSum = datRSum + datRTmp * datRTmp';
     end
     datR = datRSum / NUMB_SMP;
-
+    %datSmpSum = 0;
+    %for idxSmp = 1:NUMB_SMP
+    %    datSmpTmp = awgn(datSig, DATA_SNR, 'measured');
+    %    datSmpTmp = datSmpTmp .* DATA_COE_WIN;
+    %    datSmpSum = datSmpSum + datSmpTmp;
+    %end
+    %datSmp = datSmpSum / NUMB_SMP;
+    %datR = datSmp * datSmp';
 
     %% get best cost and index
     datPowTst = ones(NUMB_ANG_TST, NUMB_ANG_TST) * -inf;
@@ -115,6 +122,8 @@ for idxRnd = 1:NUMB_RND
         for idxAng1 = idxAng0+1:NUMB_ANG_TST
             datPowTmp = datPTst(:, :, idxAng0, idxAng1) * datR;
             datPow = 20 * log10(abs(trace(datPowTmp)));
+            %datPowTmpA = datPTst(:, :, idxAng0, idxAng1) * datRTmp;
+            %datPowA = 20 * log10(norm(datPowTmpA));
             if datPow > datPowBst
                 datPowBst = datPow;
                 idxAngRnd(:, idxRnd) = [idxAng0, idxAng1];
@@ -139,7 +148,7 @@ for idxRnd = 1:NUMB_RND
         text(datAng1 + 3, datAng0 + 5, [num2str(datAng0,'%.1f'), ', ', num2str(datAng1,'%.1f')]);
         hold off;
         % tune figure
-        set(gcf, 'position', [1320, 400, 800, 650]);
+        set(gcf, 'position', [800, 300, 500, 400]);
         grid on;
         title('dml surface');
         xlabel('angle (degree)');
@@ -165,7 +174,7 @@ if NUMB_RND > 1
         subplot(2, 1, idxObj);
         histogram(datAng, DATA_ANG_TST - 0.5 * DATA_DLT_ANG_TST);
         % tune figure
-        set(gcf, 'position', [1320, 500, 1200, 400]);
+        set(gcf, 'position', [800, 300, 1200, 400]);
         grid on;
         title(['histogram of solved angle (object ', num2str(idxObj)', ')']);
         xlabel('angle (degree)');

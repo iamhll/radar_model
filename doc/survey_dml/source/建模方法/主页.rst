@@ -1,0 +1,212 @@
+.. .............................................................................
+..
+.. Filename       : 主页.rst
+.. Author         : Huang Leilei
+.. Created        : 2020-05-23
+.. Description    : 主页
+..
+.. .............................................................................
+
+========
+建模方法
+========
+
+--------
+参数设置
+--------
+
+    ======= ================ ====== ================== =======
+    级别    名称             类型   说明                单位
+    ======= ================ ====== ================== =======
+    原始    NUMB_RND         标量   测试轮数            \
+    原始    NUMB_SMP         标量   采样次数            \
+    原始    DATA_DIS_ANT     向量   天线间距            波长
+    原始    DATA_COE_WIN     向量   加窗比例            \
+    原始    DATA_ANG_OBJ     向量   物体角度            度
+    原始    DATA_POW_OBJ     向量   物体能量（相对）    dB
+    原始    DATA_SNR         标量   信噪比              dB
+    原始    DATA_RNG_ANG_TST 标量   测试角度范围        度
+    原始    DATA_DLT_ANG_TST 标量   测试角度步长        度
+    \-
+    次级    DATA_ANG_TST     向量   测试角度            度
+    次级    NUMB_ANT         标量   天线数量
+    次级    NUMB_OBJ         标量   物体数量
+    次级    NUMB_ANG_TST     标量   测试角度数量
+    ======= ================ ====== ================== =======
+
+
+--------
+信号构建
+--------
+
+*   公共信号
+
+    *   信号数据（无噪）datSig按以下方式构建，其中，datAmp用于传递相对幅度，datPha用于传递相对相位。
+
+        ::
+
+            datSig = 0;
+            for idxObj = 1:NUMB_OBJ
+                datAmp = 10^(DATA_POW_OBJ(idxObj) / 20) / 2^0.5;
+                datPha = exp(-1i * 2 * pi * rand);
+                datSig = datSig + datAmp .* exp(1i * 2 * pi * DATA_DIS_ANT * sin(DATA_ANG_OBJ(idxObj) / 180 * pi)) * datPha;
+            end
+
+    *   待测角度按以下方式构建。
+
+        ::
+
+            DATA_ANG_TST = -DATA_RNG_ANG_TST:DATA_DLT_ANG_TST:DATA_RNG_ANG_TST;
+
+*   DBF相关信号
+
+    *   采样数据（有噪）按以下方式构建，其中，datSmpTmp先用于暂存加噪信号，后用于暂存加窗信号。
+        另外，所加的噪声为高斯白噪声，其幅度由信号数据的能量及所设置的信噪比共同确定。
+
+        ::
+
+            datSmpSum = 0;
+            for idxSmp = 1:NUMB_SMP
+                datSmpTmp = awgn(datSig, DATA_SNR, 'measured');
+                datSmpTmp = datSmpTmp .* DATA_COE_WIN;
+                datSmpSum = datSmpSum + datSmpTmp;
+            end
+            datSmp = datSmpSum / NUMB_SMP;
+
+    *   待测矢量按以下方式构建。
+
+        ::
+
+            datCoeTst = ones(NUMB_ANT, NUMB_ANG_TST);
+            for idxAng = 1:NUMB_ANG_TST
+                datAng = DATA_ANG_TST(idxAng);
+                datCoe = exp(-1i * 2 * pi * DATA_DIS_ANT * sin(datAng / 180 * pi));
+                datCoeTst(:, idxAng) = datCoe;
+            end
+
+
+*   DML相关信号
+
+    *   相关矩阵（有噪）可按以下方式构建，即基于datSmp产生
+
+        ::
+
+            datSmpSum = 0;
+            for idxSmp = 1:NUMB_SMP
+                datSmpTmp = awgn(datSig, DATA_SNR, 'measured');
+                datSmpTmp = datSmpTmp .* DATA_COE_WIN;
+                datSmpSum = datSmpSum + datSmpTmp;
+            end
+            datSmp = datSmpSum / NUMB_SMP;
+            datR = datSmp .* datSmp;
+
+        亦可按以下方式构建，即基于datRTmp产生
+
+        ::
+
+            datRSum = 0;
+            for idxSmp = 1:NUMB_SMP
+                datRTmp = awgn(datSig, DATA_SNR, 'measured');
+                datRTmp = datRTmp .* DATA_COE_WIN;
+                datRSum = datRSum + datRTmp * datRTmp';
+            end
+            datR = datRSum / NUMB_SMP;
+
+    *   待测矩阵按以下方式构建。
+
+        ::
+
+            datPTst = ones(NUMB_ANT, NUMB_ANT, NUMB_ANG_TST, NUMB_ANG_TST);
+            for idxAng0 = 1:NUMB_ANG_TST
+                datAng0 = DATA_ANG_TST(idxAng0);
+                for idxAng1 = (idxAng0+1):NUMB_ANG_TST
+                    datAng1 = DATA_ANG_TST(idxAng1);
+                    datA = [exp(1i * 2 * pi * DATA_DIS_ANT * sin(datAng0 / 180 * pi))     ...
+                           ,exp(1i * 2 * pi * DATA_DIS_ANT * sin(datAng1 / 180 * pi))]    ...
+                    ;
+                    datP = datA * (datA' * datA)^-1 * datA';
+                    datPTst(:, :, idxAng0, idxAng1) = datP;
+                end
+            end
+
+
+--------
+处理过程
+--------
+
+*   DBF相关处理
+
+    *   DBF曲线，寻找峰值，记录最大的两个峰
+
+        ::
+
+            datPowTst = ones(1, NUMB_ANG_TST);
+            for idxAng = 1:NUMB_ANG_TST
+                datPowTmp = datCoeTst(:, idxAng) .* datSmpSum;
+                datPowTst(idxAng) = 20 * log10(abs(sum(datPowTmp)));
+            end
+            [datPks, idxPks] = findpeaks(datPowTst);
+            [datSrt, idxSrt] = sort(datPks, 'descend');
+            idxAng = idxPks(idxSrt);
+            if numel(idxAng) >= 2
+                if idxAng(1) < idxAng(2)
+                    idxAng = [idxAng(1), idxAng(2)];
+                else
+                    idxAng = [idxAng(2), idxAng(1)];
+                end
+            elseif numel(idxAng) == 0
+                idxAng = round(NUMB_ANG_TST / 2);
+            end
+
+
+*   DML相关处理
+
+    *   DML曲面，寻找最大值（由于其对称性，只需要检测下半边）
+
+        ::
+
+            datPowTst = ones(NUMB_ANG_TST, NUMB_ANG_TST) * -inf;
+            datPowBst = -inf;
+            for idxAng0 = 1:NUMB_ANG_TST
+                for idxAng1 = idxAng0+1:NUMB_ANG_TST
+                    datPowTmp = datPTst(:, :, idxAng0, idxAng1) * datR;
+                    datPow = 20 * log10(abs(trace(datPowTmp)));
+                    if datPow > datPowBst
+                        datPowBst = datPow;
+                        idxAngRnd(:, idxRnd) = [idxAng0, idxAng1];
+                    end
+                    datPowTst(idxAng0, idxAng1) = datPow;
+                end
+            end
+
+
+--------
+结果呈现
+--------
+
+*   DBF相关结果
+
+    *   单次结果，以下显示了一个检测良好的DBF曲线
+
+        .. image:: dbf单次.png
+
+        \
+
+    *   统计结果
+
+        .. image:: dbf统计.png
+
+        \
+
+*   DML相关结果，以下显示了一个检测良好的DML曲面
+
+    *   单次结果
+
+        .. image:: dml单次1.png
+        .. image:: dml单次2.png
+
+        \
+
+    *   统计结果
+
+        .. image:: dml统计.png

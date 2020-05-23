@@ -1,0 +1,437 @@
+.. .............................................................................
+..
+.. Filename       : 主页.rst
+.. Author         : Huang Leilei
+.. Created        : 2020-05-23
+.. Description    : 主页
+..
+.. .............................................................................
+
+=========
+仿真对比
+=========
+
+---------
+信号相位
+---------
+
+    **如果物体的角度相差得并不远（相较于-3 dB点而言），即使在无噪情况下，
+    DBF算法的结果也会受到物体相位的影响，从而导致波峰或者向外扩散，或者向内聚拢甚至合并成一个，
+    这是DBF算法在判断多物体时最为显著的问题。**
+
+    \
+
+*   为了揭示这一问题，我们不妨基于以下的参数，对DBF算法进行测试：
+
+    ::
+
+        NUMB_SMP         = 1;               % number of samples
+        DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
+        DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
+        DATA_SNR         = inf;             % data   of snr                 in dB
+        DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
+        DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
+
+*   首先，令物体的数量为1：
+
+    ::
+
+        DATA_ANG_OBJ = [0];    % data   of objects' angles     in degree
+
+    可以得到如下的曲线，其中，主瓣的-3 dB点的位置在±13度：
+
+    .. image:: 信号相位_DBF_单次结果_单物体.png
+
+    \
+
+*   接着，令物体的数量为2，且处在±13度：
+
+    ::
+
+        DATA_ANG_OBJ = [-13, 13];    % data   of objects' angles     in degree
+
+    根据物体的不同相位，可能得到如下的曲线，向内聚拢，甚至合并成一个波峰：
+
+    .. image:: 信号相位_DBF_单次结果_双物体_聚拢.png
+    .. image:: 信号相位_DBF_单次结果_双物体_合并.png
+
+    \
+
+    也可能向外扩散：
+
+    .. image:: 信号相位_DBF_单次结果_双物体_扩散.png
+
+    \
+
+    而在统计上，有如下的分布：
+
+    .. image:: 信号相位_DBF_统计结果_±13度.png
+
+    \
+
+*   这一现象直到±21度，才能得到缓解：
+
+    .. image:: 信号相位_DBF_统计结果_±21度.png
+
+    \
+
+    **在无噪情况下，DML算法不受物体相位的影响。**
+
+    \
+
+*   令物体的数量为2，且处在±13度，结果总是正确：
+
+    ::
+
+        DATA_ANG_OBJ = [-13, 13];    % data   of objects' angles     in degree
+
+    .. image:: 信号相位_DML_无噪情况_统计结果_±13度.png
+
+    \
+
+*   即便两物体的角度非常相近，如±1度，结果依然正确：
+
+    ::
+
+        DATA_ANG_OBJ = [-1, 1];    % data   of objects' angles     in degree
+
+    .. image:: 信号相位_DML_无噪情况_统计结果_±1度.png
+
+    \
+
+    **在有噪情况下，DML算法会受到物体相位的影响，但程度并不高。**
+
+    \
+
+*   为了证明这一结论，我们不妨基于以下的参数，对DML算法进行测试：
+
+    ::
+
+        NUMB_SMP         = 1;               % number of samples
+        DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
+        DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
+        DATA_SNR         = 20;              % data   of snr                 in dB
+        DATA_ANG_OBJ     = [-13, 13];       % data   of objects' angles     in degree
+        DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
+        DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
+
+*   首先，保持物体的相位随机，得到的均方误差是：5.42，5.44
+
+    ::
+
+        datPha = exp(-1i * 2 * pi * rand);
+
+    .. image:: 信号相位_DML_有噪情况_统计结果_±13度_随机相位.png
+
+    \
+
+*   强制令物体的相位差为0，得到的均方误差是：3.37，3.37
+
+    ::
+
+        datPha = exp(-1i * 2 * pi * 0);
+
+    .. image:: 信号相位_DML_有噪情况_统计结果_±13度_0.0pi相位.png
+
+    \
+
+*   强制令物体的相位差为pi/2，得到的均方误差是：2.04，2.08
+
+    ::
+
+        datPha = exp(-1i * 2 * pi * 0.25);
+
+    .. image:: 信号相位_DML_有噪情况_统计结果_±13度_0.5pi相位.png
+
+    \
+
+*   强制令物体的相位差为pi，得到的均方误差是：2.00，1.83
+
+    ::
+
+        datPha = exp(-1i * 2 * pi * 0.5);
+
+    .. image:: 信号相位_DML_有噪情况_统计结果_±13度_1.0pi相位.png
+
+
+--------------------
+物体能量 × 物体数量
+--------------------
+
+    **在无噪情况下，DML算法基本不受物体能量的影响，甚至基本不受物体数量的影响。**
+
+    \
+
+*   为了证明这一结论，我们不妨基于以下的参数，对DML算法进行测试：
+
+    ::
+
+        NUMB_SMP         = 1;               % number of samples
+        DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
+        DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
+        DATA_ANG_OBJ     = [-13, 13];       % data   of objects' angles     in degree
+        DATA_SNR         = inf;             % data   of snr                 in dB
+        DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
+
+*   当物体能量相差20 dB时，结果依然正确：
+
+    ::
+
+        DATA_POW_OBJ = [0, -20];    % data   of objects' powers     in dB
+
+    .. image:: 物体能量_DML_单次结果_-20dB.png
+
+    \
+
+*   事实上，直到物体能量相差130 dB时，低能量物体的角度才出现偏离，
+    因此可以推知：DML算法在无噪情况下，甚至基本不受物体数量的影响：
+
+    ::
+
+        DATA_POW_OBJ = [0, -130];    % data   of objects' powers     in dB
+
+    .. image:: 物体能量_DML_统计结果_-130dB.png
+
+    \
+
+    **在有噪情况下，如果只有一个物体存在，
+    或者有两个物体存在，但其中一个物体的能量较低，
+    那么，尽管DML算法的其中一个结果只会在正确值的附近波动，但另一个结果却是完全随机的。
+    因此，该算法需要对物体数目或者其可信度进行判断**
+
+    \
+
+*   为了揭示这一问题，我们不妨基于以下的参数，对DML算法进行测试：
+
+    ::
+
+        NUMB_SMP         = 1;               % number of samples
+        DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
+        DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
+        DATA_ANG_OBJ     = [-13, 13];       % data   of objects' angles     in degree
+        DATA_SNR         = 20;              % data   of snr                 in dB
+        DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
+
+*   当物体的能量相差10 dB时，其分布如下：
+
+    ::
+
+        DATA_POW_OBJ = [0, -10];    % data   of objects' powers     in dB
+
+    .. image:: 物体能量_DML_有噪情况_统计结果_-10dB.png
+
+    \
+
+*   当物体的能量相差20 dB时，其分布如下：
+
+    ::
+
+        DATA_POW_OBJ = [0, -20];    % data   of objects' powers     in dB
+
+    .. image:: 物体能量_DML_有噪情况_统计结果_-20dB.png
+
+    \
+
+*   当物体的能量相差100 dB时，其分布如下，
+    因此可以推知：在有噪情况下，如果只有一个物体，DML算法的其中一个结果会在正确值的附近波动，另一个结果会随机分布：
+
+    ::
+
+        DATA_POW_OBJ = [0, -100];    % data   of objects' powers     in dB
+
+    .. image:: 物体能量_DML_有噪情况_统计结果_-100dB.png
+
+    \
+
+
+--------------------
+天线间距 × 加窗系数
+--------------------
+
+    **[0, 0.5, 1.0, 1.5]天线，不加窗，信噪比20dB，物体能量一致，物体相位随机，扫描范围±89度。**
+
+    \
+
+*   对应的参数如下：
+
+    ::
+
+        NUMB_SMP         = 1;               % number of samples
+        DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
+        DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
+        DATA_SNR         = 20;              % data   of snr                 in dB
+        DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
+        DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
+
+*   对于DBF算法，如果物体出现在±21度，结果不会出现显著错误，其均方差约等于35：
+
+    ::
+
+        DATA_ANG_OBJ = [-21, 21];    % data   of objects' angles     in degree
+
+    .. image:: 参数设置_1_DBF.png
+
+    \
+
+*   对于DML算法，如果物体出现在±9度时，DBF算法的均方差约等于20：
+
+    ::
+
+        DATA_ANG_OBJ = [-9, 9];    % data   of objects' angles     in degree
+
+    .. image:: 参数设置_1_DML.png
+
+    \
+
+    **[0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]天线，不加窗，信噪比20dB，物体能量一致，物体相位随机，扫描范围±89度。**
+
+    \
+
+*   对应的参数如下：
+
+    ::
+
+        NUMB_SMP         = 1;               % number of samples
+        DATA_DIS_ANT     = 0.5 * (0:7);     % data   of antenna's distances in lamda
+        DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
+        DATA_SNR         = 20;              % data   of snr                 in dB\
+        DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
+        DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
+
+*   对于DBF算法，如果物体出现在±10度，结果不会出现显著错误，其均方差约等于10：
+
+    ::
+
+        DATA_ANG_OBJ = [-10, 10];    % data   of objects' angles     in degree
+
+    .. image:: 参数设置_2_DBF.png
+
+    \
+
+*   对于DML算法，如果物体出现在±4度，其均方差约等于2：
+
+    ::
+
+        DATA_ANG_OBJ = [-4, 4];    % data   of objects' angles     in degree
+
+    .. image:: 参数设置_2_DML.png
+
+    \
+
+    **[0, 0.5, 2.0, 3.0]天线，不加窗，信噪比20dB，物体能量一致，物体相位随机，扫描范围±29度。**
+
+    \
+
+*   对应的参数如下：
+
+    ::
+
+        NUMB_SMP         = 1;                     % number of samples
+        DATA_DIS_ANT     = 0.5 * [0, 1, 4, 6];    % data   of antenna's distances in lamda
+        DATA_COE_WIN     = [1, 1, 1, 1];          % data   of window coefficient  in "1"
+        DATA_SNR         = 20;                    % data   of snr                 in dB
+        DATA_POW_OBJ     = [0 0];                 % data   of objects' powers     in dB
+        DATA_DLT_ANG_TST = 1;                     % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 30;                    % data   of test angles' range  in degree
+
+*   对于DBF算法，如果物体出现在±11度，结果不会出现显著错误，其均方差约等于2：
+
+    ::
+
+        DATA_ANG_OBJ = [-11, 11];    % data   of objects' angles     in degree
+
+    .. image:: 参数设置_3_DBF.png
+
+    \
+
+*   对于DML算法，如果物体出现在±11度时，DBF算法的均方差约等于0.4：
+
+    ::
+
+        DATA_ANG_OBJ = [-11, 11];    % data   of objects' angles     in degree
+
+    .. image:: 参数设置_3_DML.png
+
+    \
+
+*   其他情况
+
+    可直接使用survey_dbf/dml.m脚本进行对比。
+
+
+--------------------
+采样次数 × 平均方式
+--------------------
+
+    **显然，通过增加采样次数可以有效地提高信噪比，从而降低均方差，并获得更优的解角效果，
+    而平均所采用的方式似乎对结果并没有显著的影响。**
+
+*   为了分析这一结论，我们不妨基于以下的参数，对DML算法进行测试：
+
+    ::
+
+        DATA_DIS_ANT     = 0.5 * [0, 1, 4, 6];    % data   of antenna's distances in lamda
+        DATA_COE_WIN     = [1, 1, 1, 1];          % data   of window coefficient  in "1"
+        DATA_SNR         = 20;                    % data   of snr                 in dB
+        DATA_POW_OBJ     = [0 0];                 % data   of objects' powers     in dB
+        DATA_DLT_ANG_TST = 1;                     % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 30;                    % data   of test angles' range  in degree
+
+*   在单次采样的情况下，均方差约等于20：
+
+    ::
+
+        NUMB_SMP = 1;    % number of samples
+
+    .. image:: 采样次数_1.png
+
+    \
+
+*   在多次采样（9）并基于datSum作平均的情况下，均方差约等于2：
+
+    ::
+
+        NUMB_SMP = 9;    % number of samples
+
+    .. image:: 采样次数_9_基于datSum平均.png
+
+    \
+
+*   在多次采样（9）并基于datRTmp作平均的情况下，均方差亦约等于2：
+
+    ::
+
+        NUMB_SMP = 9;    % number of samples
+
+    .. image:: 采样次数_9_基于datRTmp平均.png
+
+
+-----
+总结
+-----
+
+#.  如果物体的角度相差得并不远（相较于-3 dB点而言），即使在无噪情况下，
+    DBF算法的结果也会受到物体相位的影响，从而导致波峰或者向外扩散，或者向内聚拢甚至合并成一个，
+    这是DBF算法在判断多物体时最为显著的问题。
+
+#.  在无噪情况下，DML算法不受物体相位的影响。
+
+#.  在有噪情况下，DML算法会受到物体相位的影响，但程度并不高。
+
+#.  在无噪情况下，DML算法基本不受物体能量的影响，甚至基本不受物体数量的影响。
+
+#.  在有噪情况下，如果只有一个物体存在，
+    或者有两个物体存在，但其中一个物体的能量较低，
+    那么，尽管DML算法的其中一个结果只会在正确值的附近波动，但另一个结果却是完全随机的。
+    因此，该算法需要对物体数目或者其可信度进行判断。
+
+#.  典型参数设置下DBF算法和DML算法的表现请见【 `天线间距 × 加窗系数`_ 】
+
+#.  显然，通过增加采样次数可以有效地提高信噪比，从而降低均方差，并获得更优的解角效果，
+    而平均所采用的方式似乎对结果并没有显著的影响。
