@@ -83,4 +83,6 @@
 
     当 :math:`M != 1` 时，可将 :math:`\hat{R}` 分解成 :math:`\hat{X}(i) \hat{X}^H(i)` 并重新论证其等效性
 
+    \
+
 *   因此，BFM算法事实上可以视作DML算法在 :math:`\theta` 为标量时的特殊形式。

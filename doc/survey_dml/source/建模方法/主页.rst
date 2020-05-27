@@ -98,7 +98,7 @@
                 datSmpSum = datSmpSum + datSmpTmp;
             end
             datSmp = datSmpSum / NUMB_SMP;
-            datR = datSmp .* datSmp;
+            datR = datSmp .* datSmp';
 
         亦可按以下方式构建，即基于datRTmp产生
 
