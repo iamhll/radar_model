@@ -6,6 +6,11 @@
   %  Description    : survey dbf
   %
 %-------------------------------------------------------------------------------
+  %
+  %  Modified       : 2020-05-25 by HLL
+  %  Description    : plot optimized
+  %
+%-------------------------------------------------------------------------------
 
 %*** INIT **********************************************************************
 %clc;
@@ -122,6 +127,7 @@ for idxRnd = 1:NUMB_RND
     if NUMB_RND == 1
         % open figure
         figure(INDX_FIG); INDX_FIG = INDX_FIG + 1;
+        set(gcf, 'position', [800, 300, 600, 400]);
         % curve
         plot(DATA_ANG_TST, datPowTst);
         hold on;
@@ -153,7 +159,6 @@ for idxRnd = 1:NUMB_RND
         end
         hold off;
         % tune figure
-        set(gcf, 'position', [800, 300, 600, 400]);
         grid on;
         axis([min(DATA_ANG_TST), max(DATA_ANG_TST), max(datPowTst) - 20, max(datPowTst) + 5])
         title('dbf curve');

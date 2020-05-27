@@ -9,6 +9,8 @@
   %
   %  Modified       : 2020-05-21 by HLL
   %  Description    : updated according to survey dbf
+  %  Modified       : 2020-05-25 by HLL
+  %  Description    : plot optimized
   %
 %-------------------------------------------------------------------------------
 
@@ -137,7 +139,10 @@ for idxRnd = 1:NUMB_RND
     if NUMB_RND == 1
         % open figure
         figure(INDX_FIG); INDX_FIG = INDX_FIG + 1;
+        set(gcf, 'position', [800, 50, 1000, 850]);
+
         % surface
+        subplot(2,2,1);
         surface(DATA_ANG_TST, DATA_ANG_TST, datPowTst - max(max(datPowTst)), 'LineStyle', 'none');
         hold on;
         % peak
@@ -147,12 +152,77 @@ for idxRnd = 1:NUMB_RND
         plot(ones(1, NUMB_ANG_TST) * datAng1, DATA_ANG_TST, '--');
         text(datAng1 + 3, datAng0 + 5, [num2str(datAng0,'%.1f'), ', ', num2str(datAng1,'%.1f')]);
         hold off;
-        % tune figure
-        set(gcf, 'position', [800, 300, 500, 400]);
+        % tune subplot
         grid on;
         title('dml surface');
         xlabel('angle (degree)');
         ylabel('angle (degree)');
+
+        % surface
+        subplot(2,2,2);
+        idxAng0 = idxAngRnd(1, idxRnd);
+        idxAng1 = idxAngRnd(2, idxRnd);
+        idxLocalR = 20;
+        idxLocalX = max(1,idxAng0-idxLocalR):min(NUMB_ANG_TST,idxAng0+idxLocalR);
+        idxLocalY = max(1,idxAng1-idxLocalR):min(NUMB_ANG_TST,idxAng1+idxLocalR);
+        surface(DATA_ANG_TST(idxLocalY), DATA_ANG_TST(idxLocalX), datPowTst(idxLocalX, idxLocalY) - max(max(datPowTst)));
+        hold on;
+        % peak
+        datAng0 = DATA_ANG_TST(idxAngRnd(1, idxRnd));
+        datAng1 = DATA_ANG_TST(idxAngRnd(2, idxRnd));
+        plot(DATA_ANG_TST(idxLocalY), ones(1, numel(idxLocalY)) * datAng0, '--');
+        plot(ones(1, numel(idxLocalX)) * datAng1, DATA_ANG_TST(idxLocalX), '--');
+        text(datAng1 + 3, datAng0 + 5, [num2str(datAng0,'%.1f'), ', ', num2str(datAng1,'%.1f')]);
+        hold off;
+        % tune subplot
+        view([-1, -1, 0]);
+        grid on;
+        title('dml surface');
+        xlabel('angle (degree)');
+        ylabel('angle (degree)');
+
+        % curve
+        subplot(2,2,3);
+        idxAng0 = idxAngRnd(1, idxRnd);
+        idxAng1 = idxAngRnd(2, idxRnd);
+        plot(DATA_ANG_TST, datPowTst(idxAng0, :));
+        hold on;
+        % peak
+        datAng = DATA_ANG_TST(idxAng1);
+        datPow = datPowTst(idxAng0, idxAng1);
+        plot(datAng, datPow, 'xk', 'MarkerSize', 10);
+        text(datAng - 0.5, datPow + 1.5,                                            ...
+            ['\downarrow', num2str(datAng,'%.2f'), ', ', num2str(datPow,'%.2f')]    ...
+        );
+        hold off;
+        % tune subplot
+        grid on;
+        axis([min(DATA_ANG_TST), max(DATA_ANG_TST), max(max(datPowTst)) - 10, max(max(datPowTst)) + 5])
+        title('dml curve');
+        xlabel('angle (degree)');
+        ylabel('power (dB)');
+
+        % curve
+        subplot(2,2,4);
+        idxAng0 = idxAngRnd(1, idxRnd);
+        idxAng1 = idxAngRnd(2, idxRnd);
+        plot(DATA_ANG_TST, datPowTst(:, idxAng1));
+        hold on;
+        % peak
+        datAng = DATA_ANG_TST(idxAng0);
+        datPow = datPowTst(idxAng0, idxAng1);
+        plot(datAng, datPow, 'xk', 'MarkerSize', 10);
+        text(datAng - 0.5, datPow + 1.5,                                            ...
+            ['\downarrow', num2str(datAng,'%.2f'), ', ', num2str(datPow,'%.2f')]    ...
+        );
+        hold off;
+        % tune subplot
+        grid on;
+        axis([min(DATA_ANG_TST), max(DATA_ANG_TST), max(max(datPowTst)) - 10, max(max(datPowTst)) + 5])
+        title('dml curve');
+        xlabel('angle (degree)');
+        ylabel('power (dB)');
+
         % save figure
         fig = getframe(gcf);
         img = frame2im(fig);
