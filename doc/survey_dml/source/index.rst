@@ -8,7 +8,7 @@
 
 .. toctree::
    :maxdepth: 2
-   :caption: 目录:
+   :caption: 目录
 
    背景说明/主页
    建模方法/主页

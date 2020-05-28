@@ -17,12 +17,12 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'survey_dml'
+project = 'survey dml'
 copyright = '2020, llhuang'
 author = 'llhuang'
 
 # The full version, including alpha/beta/rc tags
-release = 'v.0.0.1'
+release = '2020.05.28'
 
 
 # -- General configuration ---------------------------------------------------
@@ -68,3 +68,10 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
+
+
+#--- BEGIN OF ADDED BY ME ------------------------------------------------------
+master_doc = 'index'
+#--- END   OF ADDED BY ME ------------------------------------------------------
