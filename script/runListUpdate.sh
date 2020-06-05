@@ -24,7 +24,7 @@
       done
       echo "  ---"
       rm -rf $dirEmpty
-      dirEmpty=$(find .. -type d -empty)
+      dirEmpty=$(find . -type d -empty)
     done
   cd - > /dev/null
   echo ""
