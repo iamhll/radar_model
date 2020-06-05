@@ -1,1 +1,12 @@
 doc/survey_dml/build/
+sw/matlab/survey_dml/codegen/lib/*/examples
+sw/matlab/survey_dml/codegen/lib/*/html
+sw/matlab/survey_dml/codegen/lib/*/interface
+sw/matlab/survey_dml/codegen/lib/*/*.bat
+sw/matlab/survey_dml/codegen/lib/*/*.dmr
+sw/matlab/survey_dml/codegen/lib/*/*.mat
+sw/matlab/survey_dml/codegen/lib/*/*.mk
+sw/matlab/survey_dml/codegen/lib/*/*.o
+sw/matlab/survey_dml/codegen/lib/*/*.rsp
+sw/matlab/survey_dml/codegen/lib/*/*.tmw
+sw/matlab/survey_dml/codegen/mex
