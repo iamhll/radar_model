@@ -32,7 +32,7 @@
 
 *   通过观察能量（代价）函数 :math:`abs(tr(P_{A(\theta)}\hat{R}))`，
     其中，:math:`P_{A(\theta)} = A(\theta) ( A^H(\theta) A(\theta) )^{-1} A^H(\theta)`；
-    :math:`\hat{R} = \frac{1}{M} \sum_{n=1}^{M} (X(i) X^H(i)))`，
+    :math:`\hat{R} = \frac{1}{M} \sum_{i=1}^{M} (X(i) X^H(i)))`，
 
     我们能够很容易地联想到输入向量 :math:`X` 在矩阵 :math:`P` 上的投影，
     而矩阵 :math:`P = A ( A^H A )^{-1} A^H` 恰恰是基于待测矢量 :math:`A` 所构建的正交投影矩阵。
