@@ -15,9 +15,9 @@
 转化代价函数
 -------------
 
-............................
-转化前的代价函数及其资源占用
-............................
+.................
+转化前的资源占用
+.................
 
     根据《背景说明》中的内容，（在只采样一次的情况下的）代价函数为
     :math:`C = abs(tr(A (A^H A)^{-1} A^H X X^H))`。
@@ -47,7 +47,6 @@
     \
 
 *   当所有的变量都采用事先存储的方式获取时，求解上述代价函数所需的存储空间为：
-
 
     .. table::
         :align: left
@@ -91,6 +90,9 @@
 *   根据上述数据可知，这一代价函数有以下的弊病：
 
     *   大量的存储空间都与M和N同时呈平方关系
+
+        \
+
     *   大量的运算过程都与M和N同时呈平方关系
 
     尽管，由于上述矩阵的特殊性，这些资源有一定的减少空间。
@@ -100,9 +102,9 @@
     \
 
 
-............................
-转化后的代价函数及其资源占用
-............................
+.................
+转化后的资源占用
+.................
 
 *   经过若干迭代，一种能够有效降低维数的形式为 :math:`abs((A^H X)^H (A^H A)^-1 (A^H X))` ，对应的资源占用是：
 
@@ -122,105 +124,17 @@
         :math:`C = abs(T_{3})`                  实时运算   (1+N-1)×(N-1)/2次标量的求模
         ====================================== ========== =========================================
 
-    根据上述数据可知，这一代价函数所需的存储空间和运算过程都只与N呈平方关系（，与M仅呈线性关系）。
-    更重要的是，借助于相关矩阵的性质，剩余的平方关系还可以进一步退化。
+    根据上述数据可知，这一代价函数所需的存储空间和运算过程都只与N呈平方关系（，与M或者不相关或者仅呈线性关系）。
 
-    \
-
-*   :math:`T_{1}` （ :math:`T_{0}` ）的退化：
-
-    首先对 :math:`T_{1}` 进行展开：
-    :math:`T_{1} = (A^H A)^{-1} = (\begin{bmatrix} a(\theta_0)^H \\ a(\theta_1)^H \end{bmatrix} \begin{bmatrix} a(\theta_0) & a(\theta_1) \end{bmatrix})^{-1}`
-    ，其中，:math:`a(\theta)` 为 :math:`\theta` 对应的待测向量。
-
-    **在不考虑天线加窗和补偿的情况下**，可将 :math:`a(\theta)` 不失一般性地表示为：
-    :math:`a(\theta) = \frac{1}{\sqrt{M}} \sum_{i=1}^{M} e^{j·2\pi·d_i·sin(\theta)}`
-
-    那么，:math:`T_{1}` 可以被进一步地展开为：
-    :math:`T_{1} = ... = (\begin{bmatrix} 1 & \Delta \\ \Delta^H & 1 \end{bmatrix})^{-1}`
-    ，其中，:math:`\Delta` 为 :math:`a(\theta_0)` 与 :math:`a(\theta_1)` 之间的点积。
-
-    显然，:math:`\Delta` 可以被抽象成输入为 :math:`sin(\theta_0)-sin(\theta_1)` 的查找表：
-    :math:`a(\theta_0)·a(\theta_1) = \frac{1}{\sqrt{M}} \sum_{i=1}^{M} e^{j·2\pi·d_i·(sin(\theta_0)-sin(\theta_1))} = LUT_\Delta(sin(\theta_0)-sin(\theta_1))`
-
-    进一步地，:math:`T_{1}` 也就抽象成了另一个输入为 :math:`sin(\theta_0)-sin(\theta_1)` 的查找表：
-    :math:`T_{1} = ... = (\begin{bmatrix} 1 & LUT_\Delta(sin(\theta_0)-sin(\theta_1)) \\ {LUT_\Delta(sin(\theta_0)-sin(\theta_1))}^H & 1 \end{bmatrix})^{-1} = LUT_{T_{1}}(sin(\theta_0)-sin(\theta_1))`
-
-    这一抽象意义在于：
-    :math:`T_{1}` 原本与 :math:`\theta_0` 和 :math:`\theta_1` 都相关，即输入是二维的；
-    退化后，:math:`T_{1}` 只与 :math:`sin(\theta_0)-sin(\theta_1)` 相关，即输入是一维的。
-
-    针对这一结果，我们可以选择两种不同地方式进行利用：
-
-    #.  在 :math:`sin(\theta)` 上均匀采样，假设采样间隔为 :math:`\delta`，
-        那么对于任意的待测角度 :math:`\theta_0` 和 :math:`\theta_1`，
-        他们在 :math:`sin(\theta)` 上的间隔必然是 :math:`\delta` 的整数倍，且最小为0，最大为N-1。
-        因此，:math:`T_{1}` 可以退化成一个深度为N-1的查找表。
-
-        \
-
-    #.  不在 :math:`sin(\theta)` 上均匀采样，那么，待测角度 :math:`\theta_0` 和 :math:`\theta_1` 在 :math:`sin(\theta)` 上的间隔并没有显著的特性，
-        但是，我们仍可以将 :math:`T_{1}` 退化成一个查找表，并返回与当前 :math:`sin(\theta_0)-sin(\theta_1)` 的值最接近的入口所存储的 :math:`T_{1}` 。
-        但对于其深度，一方面，该查找表的深度需要足够地大，从而保证返回的 :math:`T_{1}` 足够地准；
-        另一方面，其深度又需要足够地小，从而保证对存储空间 (1+N-1)×(N-1)/2 的降维足够地有意义。
-
-        \
-
-    **在考虑天线加窗和补偿的情况下**，易得以下的结论：
-
-    #.  加窗对上述退化过程没有任何影响。
-
-        \
-
-    #.  基于统一斜率和截距的补偿对上述退化过程没有任何影响。
-
-            \
-
-*   :math:`T_{2}` 的退化：
-
-    首先对 :math:`T_{2}` 进行展开：
-    :math:`T_{2} = A^H X = \begin{bmatrix} a(\theta_0)^H \\ a(\theta_1)^H \end{bmatrix} X = \begin{bmatrix} a(\theta_0)^H X \\ a(\theta_1)^H X \end{bmatrix}`
-
-    显然，:math:`T_{2}` 可以被抽象成一个由某个输入为 :math:`\theta` 的查找表所组成的矩阵：
-    :math:`T_{2} = \begin{bmatrix} LUT_{t_{2}}(\theta_0) \\ LUT_{t_{2}}(\theta_0) \end{bmatrix}`
-
-*   :math:`C` ( 和 :math:`T_{3}` ） 的退化：
-
-    首先对 :math:`C` 进行展开：
-    :math:`C = abs(T_{3}) = abs({T_{2}}^H T_{1} T_{2})`，考虑到 :math:`C` 展开后每一个矩阵的大小都与M和N无关，且尺寸较小。
-    因此，在实现上（，主要是对于硬件平台来说，）可以为其设计一个专用的引擎以加快运算的速度。
-
-    \
-
-*   退化后的资源占用情况如下：
-
-    .. table::
-        :align: left
-        :widths: auto
-
-        ====================================== ========== =======================================================
-        变量                                    获取方式   占用资源
-        ====================================== ========== =======================================================
-        :math:`T_{0} = A^H A`                   事先存储   初始化时的一次性运算
-        :math:`T_{1} = {T_{0}}^{-1}`            事先存储   N个2×2矩阵的存储空间
-        \                                       \          考虑到其性质，只需要存储两个元素，且其中一个元素是实数
-        :math:`T_{2} = A^H X`                   事先存储   N个1×M矩阵和M×1矩阵的乘法
-        \                                       \          N个标量的存储空间
-        :math:`C = abs({T_{2}}^H T_{1} T_{2})`  实时运算   (1+N-1)×(N-1)/2次1×2矩阵、2×2矩阵、2×1矩阵的连乘并求模
-        ====================================== ========== =======================================================
-
-    可见，退化后平方关系仅存在于 :math:`C` 与N之间。
-
-    \
 
 ...................
-上述转化的加速表现
+转化前后的速度对比
 ...................
 
-*   测试说明
-
+    以下对转化前后的代价函数进行测试。
     由于脚本语言的特殊性，上述转化在Matlab语言下并没有显著优势。
-    因此，为了验证上述转化的效率，以下将给出的是基于C语言的测试情况。
+    因此，为了验证上述转化的效率，以下将给出的是基于C语言的测试情况，
+    并采用rps，即每秒的轮数作为衡量标准。
 
     \
 
@@ -233,9 +147,6 @@
         NUMB_RND         = 1000;            % number of test rounds
         NUMB_SMP         = 1;               % number of samples
         DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
-        DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
-        DATA_SNR         = 20;              % data   of snr                 in dB
-        DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
         DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
         DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
 
@@ -255,7 +166,6 @@
 
     \
 
-
 *   场景2
 
     对应的参数如下：
@@ -265,9 +175,6 @@
         NUMB_RND         = 1000;            % number of test rounds
         NUMB_SMP         = 1;               % number of samples
         DATA_DIS_ANT     = 0.5 * (0:7);     % data   of antenna's distances in lamda
-        DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
-        DATA_SNR         = 20;              % data   of snr                 in dB
-        DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
         DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
         DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
 
@@ -296,9 +203,6 @@
         NUMB_RND         = 1000;            % number of test rounds
         NUMB_SMP         = 1;               % number of samples
         DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
-        DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
-        DATA_SNR         = 20;              % data   of snr                 in dB
-        DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
         DATA_DLT_ANG_TST = 0.25;            % data   of test angles' delta  in degree
         DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
 
@@ -316,47 +220,444 @@
          2        5.1697     37.1913     7.1941
         ======== ========== =========== ========
 
+    \
 
-----------------------
-优化搜索过程（待添加）
-----------------------
+*   另外，该代价函数的优越性在于，通过利用矩阵/运算的性质，我们可以对该代价函数的各个子项作进一步的优化，从而或者减少存储空间，或者减少运算过程。
 
 
 -------------
-减少系数存储
+减少存储空间
 -------------
 
-    具体内容已在 `转化后的代价函数及其资源占用`_ 中阐述，相比于DBF算法，为了实现可用的DML，额外需要的系数可以从：
+....................................
+优化 :math:`T_{0}` 和 :math:`T_{1}`
+....................................
 
-    .. table::
-        :align: left
-        :widths: auto
+    首先对 :math:`T_{1}` 进行展开：
+    :math:`T_{1} = (A^H A)^{-1} = (\begin{bmatrix} a(\theta_0)^H \\ a(\theta_1)^H \end{bmatrix} \begin{bmatrix} a(\theta_0) & a(\theta_1) \end{bmatrix})^{-1}`
+    ，其中，:math:`a(\theta)` 为 :math:`\theta` 对应的待测向量。
 
-        ============================ ===================================
-        变量                          占用资源
-        ============================ ===================================
-        :math:`T_{2} = A T_{1} A^H`   (1+N-1)×(N-1)/2个M×M矩阵的存储空间
-        :math:`T_{3} = X X^H`         1个M×M矩阵的存储空间
-        ============================ ===================================
+*   在不考虑天线加窗和补偿的情况下，可将 :math:`a(\theta)` 不失一般性地表示为：
+    :math:`a(\theta) = \frac{1}{\sqrt{M}} \sum_{i=1}^{M} e^{j·2\pi·d_i·sin(\theta)}`
+
+    那么，:math:`T_{1}` 可以被进一步地展开为：
+    :math:`T_{1} = ... = (\begin{bmatrix} 1 & \Delta \\ \Delta^H & 1 \end{bmatrix})^{-1}`
+    ，其中，:math:`\Delta` 为 :math:`a(\theta_0)` 与 :math:`a(\theta_1)` 之间的点积。
+
+    显然，:math:`\Delta` 可以被抽象成输入为 :math:`sin(\theta_0)-sin(\theta_1)` 的查找表：
+    :math:`a(\theta_0)·a(\theta_1) = \frac{1}{\sqrt{M}} \sum_{i=1}^{M} e^{j·2\pi·d_i·(sin(\theta_0)-sin(\theta_1))} = LUT_\Delta(sin(\theta_0)-sin(\theta_1))`
+
+    进一步地，:math:`T_{1}` 也就抽象成了另一个输入为 :math:`sin(\theta_0)-sin(\theta_1)` 的查找表：
+    :math:`T_{1} = ... = (\begin{bmatrix} 1 & LUT_\Delta(sin(\theta_0)-sin(\theta_1)) \\ {LUT_\Delta(sin(\theta_0)-sin(\theta_1))}^H & 1 \end{bmatrix})^{-1} = LUT_{T_{1}}(sin(\theta_0)-sin(\theta_1))`
+
+    这一抽象意义在于：
+    优化前，:math:`T_{1}` 与 :math:`\theta_0` 和 :math:`\theta_1` 都相关，即输入是二维的；
+    优化后，:math:`T_{1}` 只与 :math:`sin(\theta_0)-sin(\theta_1)` 相关，即输入是一维的。
+
+    针对这一结果，我们可以选择两种不同地方式进行利用：
+
+    *   在 :math:`sin(\theta)` 上均匀采样，假设采样间隔为 :math:`\delta`，
+        那么对于任意的待测角度 :math:`\theta_0` 和 :math:`\theta_1`，
+        他们在 :math:`sin(\theta)` 上的间隔必然是 :math:`\delta` 的整数倍，且最小为0，最大为N-1。
+        因此，:math:`T_{1}` 可以存储成一个深度为N-1的查找表。
+
+        \
+
+    *   不在 :math:`sin(\theta)` 上均匀采样，那么，待测角度 :math:`\theta_0` 和 :math:`\theta_1` 在 :math:`sin(\theta)` 上的间隔并没有显著的特性，
+        但是，我们仍可以将 :math:`T_{1}` 存储成一个查找表，并返回与当前 :math:`sin(\theta_0)-sin(\theta_1)` 的值最接近的入口所存储的 :math:`T_{1}` 。
+        但对于其深度，一方面，该查找表的深度需要足够地大，从而保证返回的 :math:`T_{1}` 足够地准；
+        另一方面，其深度又需要足够地小，从而保证对存储空间 (1+N-1)×(N-1)/2 的降维足够地有意义。
+
+        \
+
+*   在考虑天线加窗和补偿的情况下，易得以下的结论：
+
+    *   加窗对上述优化没有任何影响。
+
+        \
+
+    *   基于统一斜率和截距的补偿对上述优化没有任何影响。
+
+        \
 
 
-    减少为：
+...................
+优化 :math:`T_{2}`
+...................
 
-    .. table::
-        :align: left
-        :widths: auto
+    首先对 :math:`T_{2}` 进行展开：
+    :math:`T_{2} = A^H X = \begin{bmatrix} a(\theta_0)^H \\ a(\theta_1)^H \end{bmatrix} X = \begin{bmatrix} a(\theta_0)^H X \\ a(\theta_1)^H X \end{bmatrix}`
 
-        ============================= =======================================================
-        变量                           占用资源
-        ============================= =======================================================
-        :math:`T_{1} = {T_{0}}^{-1}`   N个2×2矩阵的存储空间
-        \                              考虑到其性质，只需要存储两个元素，且其中一个元素是实数
-        :math:`T_{2} = A^H X`          N个标量的存储空间
-        ============================= =======================================================
+    显然，:math:`T_{2}` 可以被抽象成一个由某个输入为 :math:`\theta` 的查找表所组成的矩阵：
+    :math:`T_{2} = \begin{bmatrix} LUT_{t_{2}}(\theta_0) \\ LUT_{t_{2}}(\theta_0) \end{bmatrix}`
 
     \
 
 
-----------------------
-判断物体数目（待添加）
-----------------------
+.................
+优化后的资源占用
+.................
+
+    .. table::
+        :align: left
+        :widths: auto
+
+        ====================================== ========== =======================================================
+        变量                                    获取方式   占用资源
+        ====================================== ========== =======================================================
+        :math:`T_{0} = A^H A`                   事先存储   初始化时的一次性运算
+        :math:`T_{1} = {T_{0}}^{-1}`            事先存储   N个2×2矩阵的存储空间
+        \                                       \          考虑到其性质，只需要存储两个元素，且其中一个元素是实数
+        :math:`T_{2} = A^H X`                   事先存储   N个1×M矩阵和M×1矩阵的乘法
+        \                                       \          N个标量的存储空间
+        :math:`T_{3} = {T_{2}}^H T_{1} T_{2}`   实时运算   (1+N-1)×(N-1)/2次1×2矩阵与2×2矩阵的乘法
+        \                                       \          (1+N-1)×(N-1)/2次2×2矩阵与2×1矩阵的乘法
+        :math:`C = abs(T_{3})`                  实时运算   (1+N-1)×(N-1)/2次标量的求模
+        ====================================== ========== =======================================================
+
+
+-------------
+减少运算过程
+-------------
+
+................................
+优化 :math:`C` 和 :math:`T_{3}`
+................................
+
+*   一方面，由于 :math:`C` 展开后每一个矩阵的大小都与M和N无关，且尺寸较小，
+    因此，在实现上（，主要是对于硬件平台来说），我们可以为其设计一个专用的引擎以加快运算的速度。
+
+    \
+
+*   另一方面，我们可以采用粗搜加精搜的方式减少运算过程。
+
+    如果将粗搜过程中的步长记作 :math:`s` ，精搜过程中的范围记作 :math:`r` ，运算次数记作 :math:`OP` ，那么，
+    :math:`OP = (1+N/s-1)×(N/s-1)/2 + (2r)^2`
+
+    显然， :math:`r` 应当大于等于 :math:`s/2` ，否则部分搜索点永远无法被覆盖。
+
+    *   令 :math:`r` = :math:`s/2` ，那么，
+        :math:`OP = (1+N/s-1)×(N/s-1)/2 + s^2`
+        ，当 :math:`OP` 取最小值时 :math:`s` 的解析解为：:math:`root(s^4 + (N*s)/4 - N^2/2, s, 1)`
+
+        我们不妨在下列参数的情况下对其进行测试：
+
+        ::
+
+            NUMB_SMP         = 1;                         % number of samples
+            DATA_DIS_ANT     = 0.5 * (0:3);               % data   of antenna's distances in lamda
+            DATA_COE_WIN     = [1, 1, 1, 1];              % data   of window coefficient  in "1"
+            DATA_ANG_OBJ     = [-14, 13];                 % data   of objects' angles     in degree
+            DATA_POW_OBJ     = [0 0];                     % data   of objects' powers     in dB
+            DATA_SNR         = 20;                        % data   of snr                 in dB
+            DATA_DLT_ANG_TST = 1;                         % data   of test angles' delta  in degree
+            DATA_RNG_ANG_TST = 89;                        % data   of test angles' range  in degree
+
+        此时，N为179，计算可得当 :math:`OP` 取最小值时，:math:`s` 的数值解为11.1617，令 :math:`s` 为 11，即
+
+        ::
+
+            DATA_STP_RGH     = 11;                        % data   of rough search step    in degree
+            DATA_RNG_RFN     = ceil(DATA_STP_RGH / 2);    % data   of refined search range in degree
+
+        那么， :math:`OP` 将由15931减少为245。
+
+        优化前后的搜索对比如下：
+
+        .. image:: 减少运算过程_全.png
+        .. image:: 减少运算过程_快_r=0.5s_单次.png
+
+        根据上述单次结果，我们可以发现，尽管当 :math:`r` = :math:`s/2` 时，搜索有机会对整个曲面进行全覆盖。
+        但是，由于DML的峰不对称，故而当峰值出现在粗搜格点中间位置的附近时，通常会有一定的偏差：
+
+        ::
+
+            NUMB_SMP         = 1;                         % number of samples
+            DATA_DIS_ANT     = 0.5 * (0:3);               % data   of antenna's distances  in lamda
+            DATA_COE_WIN     = [1, 1, 1, 1];              % data   of window coefficient   in "1"
+            DATA_ANG_OBJ     = [-16, -11];                % data   of objects' angles      in degree
+            DATA_POW_OBJ     = [0 0];                     % data   of objects' powers      in dB
+            DATA_SNR         = 20;                        % data   of snr                  in dB
+            DATA_DLT_ANG_TST = 1;                         % data   of test angles' delta   in degree
+            DATA_RNG_ANG_TST = 89;                        % data   of test angles' range   in degree
+            DATA_STP_RGH     = 11;                        % data   of rough search step    in degree
+
+        若取：
+
+        ::
+
+            DATA_RNG_RFN     = ceil(DATA_STP_RGH / 2);    % data   of refined search range in degree
+
+        则统计结果如下（均方误差约等于7）：
+
+        .. image:: 减少运算过程_快_r=0.5s_统计.png
+
+        实时上，若令 :math:`r` = :math:`s` ，即取：
+
+        ::
+
+            DATA_RNG_RFN     = ceil(DATA_STP_RGH);        % data   of refined search range in degree
+
+        则统计结果如下（均方误差约等于5，与全搜并无差异）：
+
+        .. image:: 减少运算过程_快_r=s_统计.png
+
+        \
+
+    *   令 :math:`r` = :math:`s` ，那么，
+        :math:`OP = (1+N/s-1)×(N/s-1)/2 + (2s)^2`
+        ，当 :math:`OP` 取最小值时 :math:`s` 的解析解为：:math:`root(s^4 + (N*s)/16 - N^2/8, s, 1)`
+
+        我们不妨在下列参数的情况下对其进行测试：
+
+        ::
+
+            NUMB_SMP         = 1;               % number of samples
+            DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
+            DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
+            DATA_ANG_OBJ     = [-14, 13];       % data   of objects' angles     in degree
+            DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
+            DATA_SNR         = 20;              % data   of snr                 in dB
+            DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
+            DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
+
+        此时，N为179，计算可得当 :math:`OP` 取最小值时，:math:`s` 的数值解为7.9109，令 :math:`s` 为 8，即
+
+        ::
+
+            DATA_STP_RGH     = 8;               % data   of rough search step    in degree
+            DATA_RNG_RFN     = DATA_STP_RGH;    % data   of refined search range in degree
+
+        那么， :math:`OP` 将由15931减少为496。
+
+        优化前后的搜索对比如下：
+
+        .. image:: 减少运算过程_全.png
+        .. image:: 减少运算过程_快_r=s_单次.png
+
+
+.................
+优化后的资源占用
+.................
+
+    .. table::
+        :align: left
+        :widths: auto
+
+        ====================================== ========== ========================================================================
+        变量                                    获取方式   占用资源
+        ====================================== ========== ========================================================================
+        :math:`T_{0} = A^H A`                   事先存储   初始化时的一次性运算
+        :math:`T_{1} = {T_{0}}^{-1}`            事先存储   N个2×2矩阵的存储空间
+        \                                       \          考虑到其性质，只需要存储两个元素，且其中一个元素是实数
+        :math:`T_{2} = A^H X`                   事先存储   N个1×M矩阵和M×1矩阵的乘法
+        \                                       \          N个标量的存储空间
+        :math:`C = abs(T_{3})`                  实时运算   (1+N/s-1)×(N/s-1)/2 + (2s)^2次1×2矩阵、2×2矩阵、2×1矩阵的连乘和标量求模
+        ====================================== ========== ========================================================================
+
+
+...................
+优化前后的性能对比
+...................
+
+*   场景1
+
+    ::
+
+        NUMB_SMP         = 1;               % number of samples
+        DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
+        DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
+        DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
+        DATA_SNR         = 20;              % data   of snr                 in dB
+        DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
+
+    若物体在-14，13度的位置
+
+    ::
+
+        DATA_ANG_OBJ     = [-14, 13];       % data   of objects' angles     in degree
+
+    物体与格点的位置关系如下：
+
+    .. image:: 性能对比_1.1_单次.png
+
+    优化前的均方误差约等于5：
+
+    .. image:: 性能对比_1.1_统计_前.png
+
+    优化后的均方误差约等于5：
+
+    .. image:: 性能对比_1.1_统计_后.png
+
+    若物体在0，13度的位置
+
+    ::
+
+        DATA_ANG_OBJ     = [0, 13];         % data   of objects' angles     in degree
+
+    物体与格点的位置关系如下：
+
+    .. image:: 性能对比_1.2_单次.png
+
+    优化前的均方误差约等于60：
+
+    .. image:: 性能对比_1.2_统计_前.png
+
+    优化后的均方误差约等于90：
+
+    .. image:: 性能对比_1.2_统计_后.png
+
+    \
+
+*   场景2
+
+    ::
+
+        NUMB_SMP         = 1;               % number of samples
+        DATA_DIS_ANT     = 0.5 * (0:7);     % data   of antenna's distances in lamda
+        DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
+        DATA_ANG_OBJ     = [0, 13];         % data   of objects' angles     in degree
+        DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
+        DATA_SNR         = 20;              % data   of snr                 in dB
+        DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
+
+    物体与格点的位置关系如下：
+
+    .. image:: 性能对比_2_单次.png
+
+    优化前的均方误差约等于0.5：
+
+    .. image:: 性能对比_2_统计_前.png
+
+    优化后的均方误差约等于0.5：
+
+    .. image:: 性能对比_2_统计_后.png
+
+    \
+
+*   场景3
+
+    ::
+
+        NUMB_SMP         = 1;                     % number of samples
+        DATA_DIS_ANT     = 0.5 * [0, 1, 4, 6];    % data   of antenna's distances in lamda
+        DATA_COE_WIN     = [1, 1, 1, 1];          % data   of window coefficient  in "1"
+        DATA_ANG_OBJ     = [0, 13];               % data   of objects' angles     in degree
+        DATA_POW_OBJ     = [0 0];                 % data   of objects' powers     in dB
+        DATA_SNR         = 20;                    % data   of snr                 in dB
+        DATA_DLT_ANG_TST = 1;                     % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 30;                    % data   of test angles' range  in degree
+
+    物体与格点的位置关系如下：
+
+    .. image:: 性能对比_3_单次.png
+
+    优化前的均方误差约等于1.8：
+
+    .. image:: 性能对比_3_统计_前.png
+
+    优化后的均方误差约等于1.8：
+
+    .. image:: 性能对比_3_统计_后.png
+
+    \
+
+*   其他情况
+
+    可直接使用surveydml.m脚本进行对比。
+
+...................
+优化前后的速度对比
+...................
+
+    \
+
+*   场景1
+
+    对应的参数如下：
+
+    ::
+
+        NUMB_RND         = 1000;            % number of test rounds
+        NUMB_SMP         = 1;               % number of samples
+        DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
+        DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
+
+    \
+
+    .. table::
+        :align: left
+        :widths: auto
+
+        ======== =========== ========== =========
+         序号     rps（前）   rps（后）  加速比
+        ======== =========== ========== =========
+         0        605.6935    9.5238e3   15.7238
+         1        642.2608    8.9286e3   13.9018
+         2        627.3526    9.6154e3   15.3269
+        ======== =========== ========== =========
+
+    \
+
+*   场景2
+
+    对应的参数如下：
+
+    ::
+
+        NUMB_RND         = 1000;            % number of test rounds
+        NUMB_SMP         = 1;               % number of samples
+        DATA_DIS_ANT     = 0.5 * (0:7);     % data   of antenna's distances in lamda
+        DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
+
+    \
+
+    .. table::
+        :align: left
+        :widths: auto
+
+        ======== =========== ========== ==========
+         序号     rps（前）   rps（后）  加速比
+        ======== =========== ========== ==========
+         0        633.3122    7.7519e3   12.2403
+         1        641.4368    7.7519e3   12.0853
+         2        651.8905    7.9365e3   12.1746
+        ======== =========== ========== ==========
+
+    \
+
+*   场景3
+
+    对应的参数如下：
+
+    ::
+
+        NUMB_RND         = 1000;            % number of test rounds
+        NUMB_SMP         = 1;               % number of samples
+        DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
+        DATA_DLT_ANG_TST = 0.25;            % data   of test angles' delta  in degree
+        DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
+
+    \
+
+    .. table::
+        :align: left
+        :widths: auto
+
+        ======== =========== ========== =========
+         序号     rps（前）   rps（前）  加速比
+        ======== =========== ========== =========
+         0        36.7985     1.7986e3   48.8759
+         1        36.4365     1.9380e3   53.1880
+         2        37.1913     1.9455e3   52.3113
+        ======== =========== ========== =========
+
+    \
+
+-------------
+判断物体数目
+-------------

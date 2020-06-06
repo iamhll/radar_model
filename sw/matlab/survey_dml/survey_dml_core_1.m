@@ -14,6 +14,9 @@ DATA_ANG_TST     = -DATA_RNG_ANG_TST:DATA_DLT_ANG_TST:DATA_RNG_ANG_TST;
 NUMB_ANT         = numel(DATA_DIS_ANT);
 NUMB_OBJ         = numel(DATA_ANG_OBJ);
 NUMB_ANG_TST     = numel(DATA_ANG_TST);
+KNOB_RaR         = 1;
+DATA_STP_RGH     = floor(sqrt(NUMB_ANG_TST));
+DATA_RNG_RFN     = ceil(DATA_STP_RGH);
 DATA_ANG_AMB_MAX = asin(1 / (DATA_DIS_ANT(2  ) - DATA_DIS_ANT(1)) / 2) / pi * 180;
 fprintf('max non-ambiguity angle of objects is about %.2f degree\n', DATA_ANG_AMB_MAX);
 
@@ -49,14 +52,13 @@ for idxRnd = 1:NUMB_RND
 
 
     %% prepare datR
-    datRSum = complex(zeros(NUMB_ANT));
-    for idxSmp = 1:NUMB_SMP
-        datRTmp = awgn(datSig, DATA_SNR, 'measured');
-        datRTmp = datRTmp .* DATA_COE_WIN;
-        datRSum = datRSum + datRTmp * datRTmp';
-    end
-    datR = datRSum / NUMB_SMP;
-    %% prepare datR
+    %datRSum = complex(zeros(NUMB_ANT));
+    %for idxSmp = 1:NUMB_SMP
+    %    datRTmp = awgn(datSig, DATA_SNR, 'measured');
+    %    datRTmp = datRTmp .* DATA_COE_WIN;
+    %    datRSum = datRSum + datRTmp * datRTmp';
+    %end
+    %datR = datRSum / NUMB_SMP;
     datSmpSum = complex(zeros(NUMB_ANT, 1));
     for idxSmp = 1:NUMB_SMP
         datSmpTmp = awgn(datSig, DATA_SNR, 'measured');
@@ -70,17 +72,51 @@ for idxRnd = 1:NUMB_RND
     %% get best cost and index
     datPowTst = zeros(NUMB_ANG_TST, NUMB_ANG_TST) - inf;
     datPowBst = -inf;
-    for idxAng0 = 1:NUMB_ANG_TST
-        for idxAng1 = idxAng0+1:NUMB_ANG_TST
-            datPowTmp = datPTst(:, :, idxAng0, idxAng1) * datR;
-            datPow = 20 * log10(abs(trace(datPowTmp)));
-            %datPowTmpA = datPTst(:, :, idxAng0, idxAng1) * datRTmp;
-            %datPowA = 20 * log10(norm(datPowTmpA));
-            if datPow > datPowBst
-                datPowBst = datPow;
-                idxAngRnd(:, idxRnd) = [idxAng0, idxAng1];
+    if KNOB_RaR == 1
+        %% get best cost and index (rough)
+        datPowTst = zeros(NUMB_ANG_TST, NUMB_ANG_TST) - inf;
+        datPowBst = -inf;
+        for idxAng0 = [floor(NUMB_ANG_TST/2)-floor(DATA_STP_RGH/2):-DATA_STP_RGH:1,floor(NUMB_ANG_TST/2)+ceil(DATA_STP_RGH/2):DATA_STP_RGH:NUMB_ANG_TST]
+            for idxAng1 = [floor(NUMB_ANG_TST/2)-floor(DATA_STP_RGH/2):-DATA_STP_RGH:1,floor(NUMB_ANG_TST/2)+ceil(DATA_STP_RGH/2):DATA_STP_RGH:NUMB_ANG_TST]+1
+                if idxAng0 < idxAng1 && idxAng1 <= NUMB_ANG_TST
+                    datPowTmp = datPTst(:, :, idxAng0, idxAng1) * datR;
+                    datPow = 20 * log10(abs(trace(datPowTmp)));
+                    if datPow > datPowBst
+                        datPowBst = datPow;
+                        idxAngRnd(:, idxRnd) = [idxAng0, idxAng1];
+                    end
+                    datPowTst(idxAng0, idxAng1) = datPow;
+                end
             end
-            datPowTst(idxAng0, idxAng1) = datPow;
+        end
+
+        %% get best cost and index (refined)
+        idxAngBstRgh0 = idxAngRnd(1, idxRnd);
+        idxAngBstRgh1 = idxAngRnd(2, idxRnd);
+        for idxAng0 = max(1,idxAngBstRgh0-DATA_RNG_RFN):min(NUMB_ANG_TST,idxAngBstRgh0+DATA_RNG_RFN)
+            for idxAng1 = max(idxAng0+1,idxAngBstRgh1-DATA_RNG_RFN):min(NUMB_ANG_TST,idxAngBstRgh1+DATA_RNG_RFN)
+                datPowTmp = datPTst(:, :, idxAng0, idxAng1) * datR;
+                datPow = 20 * log10(abs(trace(datPowTmp)));
+                if datPow > datPowBst
+                    datPowBst = datPow;
+                    idxAngRnd(:, idxRnd) = [idxAng0, idxAng1];
+                end
+                datPowTst(idxAng0, idxAng1) = datPow;
+            end
+        end
+    else
+        for idxAng0 = 1:NUMB_ANG_TST
+            for idxAng1 = idxAng0+1:NUMB_ANG_TST
+                datPowTmp = datPTst(:, :, idxAng0, idxAng1) * datR;
+                datPow = 20 * log10(abs(trace(datPowTmp)));
+                %datPowTmpA = datPTst(:, :, idxAng0, idxAng1) * datRTmp;
+                %datPowA = 20 * log10(norm(datPowTmpA));
+                if datPow > datPowBst
+                    datPowBst = datPow;
+                    idxAngRnd(:, idxRnd) = [idxAng0, idxAng1];
+                end
+                datPowTst(idxAng0, idxAng1) = datPow;
+            end
         end
     end
 
@@ -95,6 +131,12 @@ for idxRnd = 1:NUMB_RND
         subplot(2,2,1);
         surface(DATA_ANG_TST, DATA_ANG_TST, datPowTst - max(max(datPowTst)), 'LineStyle', 'none');
         hold on;
+        % grid
+        for idxAng = [floor(NUMB_ANG_TST/2)-floor(DATA_STP_RGH/2):-DATA_STP_RGH:1,floor(NUMB_ANG_TST/2)+ceil(DATA_STP_RGH/2):DATA_STP_RGH:NUMB_ANG_TST]
+            datAng = DATA_ANG_TST(idxAng);
+            plot(DATA_ANG_TST, zeros(1, NUMB_ANG_TST) + datAng, 'k');
+            plot(zeros(1, NUMB_ANG_TST) + datAng, DATA_ANG_TST, 'k');
+        end
         % peak
         datAng0 = DATA_ANG_TST(idxAngRnd(1, idxRnd));
         datAng1 = DATA_ANG_TST(idxAngRnd(2, idxRnd));

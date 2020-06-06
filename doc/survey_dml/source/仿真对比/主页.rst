@@ -28,8 +28,8 @@
         NUMB_SMP         = 1;               % number of samples
         DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
         DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
-        DATA_SNR         = inf;             % data   of snr                 in dB
         DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
+        DATA_SNR         = inf;             % data   of snr                 in dB
         DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
         DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
 
@@ -111,9 +111,9 @@
         NUMB_SMP         = 1;               % number of samples
         DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
         DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
-        DATA_SNR         = 20;              % data   of snr                 in dB
         DATA_ANG_OBJ     = [-13, 13];       % data   of objects' angles     in degree
         DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
+        DATA_SNR         = 20;              % data   of snr                 in dB
         DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
         DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
 
@@ -282,8 +282,8 @@
         NUMB_SMP         = 1;               % number of samples
         DATA_DIS_ANT     = 0.5 * (0:3);     % data   of antenna's distances in lamda
         DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
-        DATA_SNR         = 20;              % data   of snr                 in dB
         DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
+        DATA_SNR         = 20;              % data   of snr                 in dB
         DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
         DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
 
@@ -318,8 +318,8 @@
         NUMB_SMP         = 1;               % number of samples
         DATA_DIS_ANT     = 0.5 * (0:7);     % data   of antenna's distances in lamda
         DATA_COE_WIN     = [1, 1, 1, 1];    % data   of window coefficient  in "1"
-        DATA_SNR         = 20;              % data   of snr                 in dB\
         DATA_POW_OBJ     = [0 0];           % data   of objects' powers     in dB
+        DATA_SNR         = 20;              % data   of snr                 in dB
         DATA_DLT_ANG_TST = 1;               % data   of test angles' delta  in degree
         DATA_RNG_ANG_TST = 89;              % data   of test angles' range  in degree
 
@@ -354,8 +354,8 @@
         NUMB_SMP         = 1;                     % number of samples
         DATA_DIS_ANT     = 0.5 * [0, 1, 4, 6];    % data   of antenna's distances in lamda
         DATA_COE_WIN     = [1, 1, 1, 1];          % data   of window coefficient  in "1"
-        DATA_SNR         = 20;                    % data   of snr                 in dB
         DATA_POW_OBJ     = [0 0];                 % data   of objects' powers     in dB
+        DATA_SNR         = 20;                    % data   of snr                 in dB
         DATA_DLT_ANG_TST = 1;                     % data   of test angles' delta  in degree
         DATA_RNG_ANG_TST = 30;                    % data   of test angles' range  in degree
 
@@ -397,8 +397,8 @@
 
         DATA_DIS_ANT     = 0.5 * [0, 1, 4, 6];    % data   of antenna's distances in lamda
         DATA_COE_WIN     = [1, 1, 1, 1];          % data   of window coefficient  in "1"
-        DATA_SNR         = 20;                    % data   of snr                 in dB
         DATA_POW_OBJ     = [0 0];                 % data   of objects' powers     in dB
+        DATA_SNR         = 20;                    % data   of snr                 in dB
         DATA_DLT_ANG_TST = 1;                     % data   of test angles' delta  in degree
         DATA_RNG_ANG_TST = 30;                    % data   of test angles' range  in degree
 
