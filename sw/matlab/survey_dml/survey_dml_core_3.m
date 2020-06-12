@@ -75,7 +75,7 @@ for idxRnd = 1:NUMB_RND
     for idxAng0 = 1:NUMB_ANG_TST
         for idxAng1 = idxAng0+1:NUMB_ANG_TST
             datPowTmp = [datVXTst(idxAng0); datVXTst(idxAng1)]' * datCTst(:, :, idxAng0, idxAng1) * [datVXTst(idxAng0); datVXTst(idxAng1)];
-            datPow = 20 * log10(abs(datPowTmp));
+            datPow = 10 * log10(abs(datPowTmp));
             if datPow > datPowBst
                 datPowBst = datPow;
                 idxAngRnd(:, idxRnd) = [idxAng0, idxAng1];

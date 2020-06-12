@@ -1,13 +1,14 @@
 %-------------------------------------------------------------------------------
   %
-  %  Filename       : survey_dml_core_1.m
+  %  Filename       : survey_dml_core.m
   %  Author         : Huang Leilei
-  %  Created        : 2020-06-04
+  %  Created        : 2020-06-12
   %  Description    : core calculation of dml
+  %                   (based on SW/M/survey_dml/survey_dml_core_1.m)
   %
 %-------------------------------------------------------------------------------
 
-function idxAngRnd = survey_dml_core_1(NUMB_RND, NUMB_SMP, INDX_FIG, DATA_DIS_ANT, DATA_COE_WIN, DATA_ANG_OBJ, DATA_POW_OBJ, DATA_SNR, DATA_DLT_ANG_TST, DATA_RNG_ANG_TST)
+function [idxAng, datPowDlt] = survey_dml_core(FLAG_FIG, NUMB_RND, NUMB_SMP, INDX_FIG, DATA_DIS_ANT, DATA_COE_WIN, DATA_ANG_OBJ, DATA_POW_OBJ, DATA_SNR, DATA_DLT_ANG_TST, DATA_RNG_ANG_TST)
 
 %%*** DERIVED PARAMETER *********************************************************
 DATA_ANG_TST     = -DATA_RNG_ANG_TST:DATA_DLT_ANG_TST:DATA_RNG_ANG_TST;
@@ -17,8 +18,6 @@ NUMB_ANG_TST     = numel(DATA_ANG_TST);
 KNOB_RaR         = 1;
 DATA_STP_RGH     = floor(sqrt(NUMB_ANG_TST));
 DATA_RNG_RFN     = ceil(DATA_STP_RGH);
-DATA_ANG_AMB_MAX = asin(1 / (DATA_DIS_ANT(2  ) - DATA_DIS_ANT(1)) / 2) / pi * 180;
-fprintf('max non-ambiguity angle of objects is about %.2f degree\n', DATA_ANG_AMB_MAX);
 
 
 
@@ -39,8 +38,18 @@ for idxAng0 = 1:NUMB_ANG_TST
 end
 
 
+%% prepare datCoe
+datCoeTst = zeros(NUMB_ANT, NUMB_ANG_TST);
+for idxAng = 1:NUMB_ANG_TST
+    datAng = DATA_ANG_TST(idxAng);
+    datCoe = exp(1i * 2 * pi * DATA_DIS_ANT * sin(datAng / 180 * pi));
+    datCoeTst(:, idxAng) = datCoe / NUMB_ANT^0.5;
+end
+
+
 %% traverse
-idxAngRnd = zeros(2, NUMB_RND);
+idxAngRnd    = zeros(2, NUMB_RND);
+datPowDltRnd = zeros(1, NUMB_RND);
 for idxRnd = 1:NUMB_RND
     %% prepare datSig
     datSig = complex(zeros(NUMB_ANT, 1));
@@ -109,8 +118,8 @@ for idxRnd = 1:NUMB_RND
             for idxAng1 = idxAng0+1:NUMB_ANG_TST
                 datPowTmp = datPTst(:, :, idxAng0, idxAng1) * datR;
                 datPow = 10 * log10(abs(trace(datPowTmp)));
-                %datPowTmp = datPTst(:, :, idxAng0, idxAng1) * datX;
-                %datPow = 20 * log10(norm(datPowTmp));
+                datPowTmp = datPTst(:, :, idxAng0, idxAng1) * datX;
+                datPow = 20 * log10(norm(datPowTmp));
                 if datPow > datPowBst
                     datPowBst = datPow;
                     idxAngRnd(:, idxRnd) = [idxAng0, idxAng1];
@@ -121,8 +130,17 @@ for idxRnd = 1:NUMB_RND
     end
 
 
+    %% get power
+    idxAngBst0 = idxAngRnd(1, idxRnd);
+    idxAngBst1 = idxAngRnd(2, idxRnd);
+    datPowDbf0 = 20 * log10(abs(norm(datCoeTst(:   , idxAngBst0            )' * datX)));
+    datPowDbf1 = 20 * log10(abs(norm(datCoeTst(:   , idxAngBst1            )' * datX)));
+    datPowDml  = 20 * log10(abs(norm(datPTst  (:, :, idxAngBst0, idxAngBst1)' * datX)));
+    datPowDltRnd(idxRnd) = max(datPowDbf0, datPowDbf1) - datPowDml;
+
+
     %% plot
-    if NUMB_RND == 1
+    if FLAG_FIG && NUMB_RND == 1
         % open figure
         figure(INDX_FIG); INDX_FIG = INDX_FIG + 1;
         set(gcf, 'position', [800, 50, 1000, 850]);
@@ -220,4 +238,49 @@ for idxRnd = 1:NUMB_RND
         img = frame2im(fig);
         imwrite(img, 'dump/surface.png');
     end
+end
+
+
+%% output
+idxAng    = median(idxAngRnd   , 2);
+datPowDlt = median(datPowDltRnd);
+
+
+%% analyze
+if FLAG_FIG && NUMB_RND > 1
+    figure(INDX_FIG); INDX_FIG = INDX_FIG + 1;
+    for idxObj = 1:2
+        % calculate
+        datAng = DATA_ANG_TST(idxAngRnd(idxObj, :));
+        err = sum((datAng - DATA_ANG_OBJ(min(NUMB_OBJ, idxObj))) .^ 2) / NUMB_RND;
+        % log
+        fprintf('most solved angle (and averaged SSE) of object %d is %.2f (and %.2f), which should be %.2f\n', idxObj, mode(datAng), err, DATA_ANG_OBJ(min(NUMB_OBJ, idxObj)));
+        % plot
+        subplot(2, 1, idxObj);
+        histogram(datAng, DATA_ANG_TST - 0.5 * DATA_DLT_ANG_TST);
+        % tune figure
+        set(gcf, 'position', [800, 300, 1200, 400]);
+        grid on;
+        title(['histogram of solved angle (object ', num2str(idxObj)', ')']);
+        xlabel('angle (degree)');
+        ylabel('number');
+        % save figure
+        fig = getframe(gcf);
+        img = frame2im(fig);
+        imwrite(img, 'dump/histo_index.png');
+    end
+
+    figure(INDX_FIG); INDX_FIG = INDX_FIG + 1;
+    % plot
+    histogram(datPowDltRnd, -10:0.5:1);
+    % tune figure
+    set(gcf, 'position', [800, 300, 1200, 400]);
+    grid on;
+    title('histogram of dbf\_max - dml');
+    xlabel('power (dB)');
+    ylabel('number');
+    % save figure
+    fig = getframe(gcf);
+    img = frame2im(fig);
+    imwrite(img, 'dump/histo_power.png');
 end

@@ -661,3 +661,140 @@
 -------------
 判断物体数目
 -------------
+
+    正如《背景说明》中所述，BFM算法可以视作DML算法在 :math:`\theta` 为标量时的特殊形式。
+    基于这一结论，我们可以尝试使用DBF能量和DML能量之间的相对关系来判断物体的数量。
+
+*   归一化
+
+    在进行能量比较之前，不妨对DBF能量和DML能量的计算方法作归一化：
+
+    ::
+
+        datPowDbf(1) = 20 * log10(abs(norm(datCoeTst(:   , idxAngBst0            )' * datX)));
+        datPowDbf(2) = 20 * log10(abs(norm(datCoeTst(:   , idxAngBst1            )' * datX)));
+        datPowDml    = 20 * log10(abs(norm(datPTst  (:, :, idxAngBst0, idxAngBst1)' * datX)));
+
+    其中，idxAngBst0和idxAngBst1为DML算法所解得的最佳角度，datX为输入信号，datCoeTst为DBF待测矢量，datPTst为DML待测矩阵。
+    显然，为了datPowDbf和datPowDml能够可比，应令datCoeTst和datPTst的模都为1。
+    由于正交投影矩阵的特殊性，datPTst的模值一定为1；而在构造datCoeTst时，需要额外地除以NUMB_ANT^0.5：
+
+    ::
+
+        datCoeTst = zeros(NUMB_ANT, NUMB_ANG_TST);
+        for idxAng = 1:NUMB_ANG_TST
+            datAng = DATA_ANG_TST(idxAng);
+            datCoe = exp(1i * 2 * pi * DATA_DIS_ANT * sin(datAng / 180 * pi));
+            datCoeTst(:, idxAng) = datCoe / NUMB_ANT^0.5;
+        end
+
+*   无噪情况
+
+    以下对无噪情况下的相对能量进行测试：
+
+    所采用的公共参数如下：
+
+    ::
+
+        NUMB_RND         = 1000;                            % number of test rounds
+        NUMB_SMP         = 1;                               % number of samples
+        INDX_FIG         = 1;                               % index  of figure
+        DATA_DIS_ANT     = 0.5 * (0:3);                     % data   of antenna's distances in lamda
+        DATA_COE_WIN     = ones(1, numel(DATA_DIS_ANT));    % data   of window coefficient  in "1"
+        DATA_POW_OBJ     = [0, 0];                          % data   of objects' powers     in dB
+        DATA_SNR         = inf;                             % data   of snr                 in dB
+        DATA_DLT_ANG_TST = 1;
+        DATA_RNG_ANG_TST = 89;                              % data   of test angles' range  in degree
+
+    具体测试方法为：
+
+    #.  令ang = 1:30，依次取DATA_ANG_OBJ = [ang]，记录对应的DBF和DML能量中位数，结果如下：
+
+        .. image:: 判断物体数目_无噪_4天线_单物体_统计.png
+
+        在无噪情况下，如果只有一个物体，DBF能量与DML能量一致。
+
+        \
+
+    #.  令ang = 1:30，依次取DATA_ANG_OBJ = [-ang, ang]，记录对应的DBF和DML能量中位数，结果如下：
+
+        .. image:: 判断物体数目_无噪_4天线_多物体_统计.png
+
+        在无噪情况下，如果存在两个物体，但角度相近时，DBF能量与DML能量相差不多；
+        在无噪情况下，如果存在两个物体，且角度相差足够大时（相较于-3 dB点，即13度），DBF能量相比于DML能量低3dB。
+        （3dB是因为我们在仿真时假设了物体的能量一致）
+
+        显然，当孔径越大，-3 dB点越小，可分辨的角度也就越细，如下所示：
+
+        .. image:: 判断物体数目_无噪_8天线_多物体_统计.png
+
+        对应的参数为
+
+        ::
+
+            DATA_DIS_ANT = 0.5 * (0:7);    % data of antenna's distances in lamda
+
+        \
+
+    #.  值得注意的是，尽管上述参数采用了无穷大的信噪比，但仍对每个ang都进行了1000轮测试，并取其中位数作为结果。
+        这是因为，如前文所述的，物体的相对相位会影响分辨的结果。为了便于理解，以下给出了一个多物体在各个角度的单次结果。
+
+        .. image:: 判断物体数目_无噪_4天线_多物体_单次.png
+
+        \
+
+*   有噪情况
+
+    以下对有噪情况下的相对能量进行测试：
+
+    所采用的公共参数如下：
+
+    ::
+
+        NUMB_RND         = 1000;                            % number of test rounds
+        NUMB_SMP         = 1;                               % number of samples
+        INDX_FIG         = 1;                               % index  of figure
+        DATA_DIS_ANT     = 0.5 * (0:3);                     % data   of antenna's distances in lamda
+        DATA_COE_WIN     = ones(1, numel(DATA_DIS_ANT));    % data   of window coefficient  in "1"
+        DATA_POW_OBJ     = [0, 0];                          % data   of objects' powers     in dB
+        DATA_SNR         = 20;                              % data   of snr                 in dB
+        DATA_DLT_ANG_TST = 1;
+        DATA_RNG_ANG_TST = 89;                              % data   of test angles' range  in degree
+
+    具体测试方法为：
+
+    #.  令ang = 1:30，依次取DATA_ANG_OBJ = [ang]，记录对应的DBF和DML能量中位数，结果如下：
+
+        .. image:: 判断物体数目_有噪_4天线_单物体_统计.png
+
+        在有噪情况下，如果只有一个物体，DBF能量略微低于DML能量。
+
+        \
+
+    #.  令ang = 1:30，依次取DATA_ANG_OBJ = [-ang, ang]，记录对应的DBF和DML能量中位数，结果如下：
+
+        .. image:: 判断物体数目_有噪_4天线_多物体_统计.png
+
+        在无噪情况下，如果存在两个物体，但角度相近时，DBF能量与DML能量相差不多；
+        在无噪情况下，如果存在两个物体，且角度相差足够大时（相较于-3 dB点，即13度），DBF能量与DML能量的差接近3dB。
+        （3dB是因为我们在仿真时假设了物体的能量一致）
+
+        \
+
+    #.  同样地，噪声和物体的相对相位都会影响结果，以下给出了一个多物体在各个角度的单次结果。
+
+        .. image:: 判断物体数目_有噪_4天线_多物体_单次.png
+
+        并额外给出了多物体在[-1,1]，[-13, 13]和[-26, 26]时的直方图结果。
+
+        .. image:: 判断物体数目_有噪_4天线_多物体_直方图@1.png
+
+        \
+
+        .. image:: 判断物体数目_有噪_4天线_多物体_直方图@13.png
+
+        \
+
+        .. image:: 判断物体数目_有噪_4天线_多物体_直方图@26.png
+
+        \

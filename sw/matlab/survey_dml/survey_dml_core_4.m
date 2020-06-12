@@ -78,7 +78,7 @@ for idxRnd = 1:NUMB_RND
         for idxAng1 = 2:DATA_STP_RGH:NUMB_ANG_TST
             if idxAng0 < idxAng1 && idxAng1 <= NUMB_ANG_TST
                 datPowTmp = [datVXTst(idxAng0); datVXTst(idxAng1)]' * datCTst(:, :, idxAng0, idxAng1) * [datVXTst(idxAng0); datVXTst(idxAng1)];
-                datPow = 20 * log10(abs(datPowTmp));
+                datPow = 10 * log10(abs(datPowTmp));
                 if datPow > datPowBst
                     datPowBst = datPow;
                     idxAngRnd(:, idxRnd) = [idxAng0, idxAng1];
@@ -95,7 +95,7 @@ for idxRnd = 1:NUMB_RND
     for idxAng0 = max(1,idxAngBstRgh0-DATA_RNG_RFN):min(NUMB_ANG_TST,idxAngBstRgh0+DATA_RNG_RFN)
         for idxAng1 = max(idxAng0+1,idxAngBstRgh1-DATA_RNG_RFN):min(NUMB_ANG_TST,idxAngBstRgh1+DATA_RNG_RFN)
             datPowTmp = [datVXTst(idxAng0); datVXTst(idxAng1)]' * datCTst(:, :, idxAng0, idxAng1) * [datVXTst(idxAng0); datVXTst(idxAng1)];
-            datPow = 20 * log10(abs(datPowTmp));
+            datPow = 10 * log10(abs(datPowTmp));
             if datPow > datPowBst
                 datPowBst = datPow;
                 idxAngRnd(:, idxRnd) = [idxAng0, idxAng1];
