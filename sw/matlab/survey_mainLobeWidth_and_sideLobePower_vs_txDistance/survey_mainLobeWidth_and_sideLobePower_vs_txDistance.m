@@ -58,8 +58,8 @@ else
 end
 
 %% traverse
-datPowLobSid = ones(1, NUMB_DIS_ANT_TX_TST);
-datWidLobMai = ones(1, NUMB_DIS_ANT_TX_TST);
+datPowLobSid = zeros(1, NUMB_DIS_ANT_TX_TST);
+datWidLobMai = zeros(1, NUMB_DIS_ANT_TX_TST);
 for idxDisAntTx = 1:NUMB_DIS_ANT_TX_TST
     %% prepare DATA_DIS_ANT
     DATA_DIS_ANT = [];
@@ -69,7 +69,7 @@ for idxDisAntTx = 1:NUMB_DIS_ANT_TX_TST
     DATA_DIS_ANT = DATA_DIS_ANT';
 
     %% prepare datCoe
-    datCoeTst = ones(NUMB_ANT, NUMB_ANG_TST);
+    datCoeTst = zeros(NUMB_ANT, NUMB_ANG_TST);
     for idxAng = 1:NUMB_ANG_TST
         datAng = DATA_ANG_TST(idxAng);
         datCoe = exp(-1i * 2 * pi * DATA_DIS_ANT * sin(datAng / 180 * pi));
@@ -77,11 +77,11 @@ for idxDisAntTx = 1:NUMB_DIS_ANT_TX_TST
     end
 
     %% prepare datSig
-    datSig = ones(numel(DATA_DIS_ANT), 1);
+    datSig = zeros(numel(DATA_DIS_ANT), 1);
 
     %% get curve
     % calculate
-    datPowTst = ones(1, NUMB_ANG_TST);
+    datPowTst = zeros(1, NUMB_ANG_TST);
     for idxAng = 1:NUMB_ANG_TST
         datPowTmp = datCoeTst(:, idxAng) .* datSig;
         datPowTst(idxAng) = 20 * log10(abs(sum(datPowTmp)));

@@ -72,7 +72,7 @@ fprintf('max non-ambiguity angle of objects is about %.2f degree\n', DATA_ANG_AM
 
 %*** MAIN BODY *****************************************************************
 %% prepare datCoe
-datCoeTst = ones(NUMB_ANT, NUMB_ANG_TST);
+datCoeTst = zeros(NUMB_ANT, NUMB_ANG_TST);
 for idxAng = 1:NUMB_ANG_TST
     datAng = DATA_ANG_TST(idxAng);
     datCoe = exp(-1i * 2 * pi * DATA_DIS_ANT * sin(datAng / 180 * pi));
@@ -81,7 +81,7 @@ end
 
 
 %% traverse
-idxAngRnd = ones(2, NUMB_RND);
+idxAngRnd = zeros(2, NUMB_RND);
 for idxRnd = 1:NUMB_RND
     %% prepare datSig
     datSig = 0;
@@ -103,7 +103,7 @@ for idxRnd = 1:NUMB_RND
 
 
     %% get best cost and index
-    datPowTst = ones(1, NUMB_ANG_TST);
+    datPowTst = zeros(1, NUMB_ANG_TST);
     for idxAng = 1:NUMB_ANG_TST
         datPowTmp = datCoeTst(:, idxAng) .* datSmpSum;
         datPowTst(idxAng) = 20 * log10(abs(sum(datPowTmp)));
@@ -141,7 +141,7 @@ for idxRnd = 1:NUMB_RND
             );
         end
         % -3 db point
-        plot(DATA_ANG_TST, ones(1, NUMB_ANG_TST) * (max(datPowTst) - 3), '--');
+        plot(DATA_ANG_TST, zeros(1, NUMB_ANG_TST) + (max(datPowTst) - 3), '--');
         for idxAng = 2:NUMB_ANG_TST
             if (datPowTst(idxAng - 1) - (max(datPowTst) - 3)) * (datPowTst(idxAng) - (max(datPowTst) - 3)) < 0
                 if datPowTst(idxAng - 1) > (max(datPowTst) - 3)
@@ -152,7 +152,7 @@ for idxRnd = 1:NUMB_RND
                     datPow = datPowTst (idxAng);
                 end
                 plot(datAng, datPow, 'xk', 'MarkerSize', 10);
-                text(datAng - 0.5, datPow - 1.5,                                            ...
+                text(datAng - 0.5, datPow - 1.5,                                          ...
                     ['\uparrow', num2str(datAng,'%.2f'), ', ', num2str(datPow,'%.2f')]    ...
                 );
             end
