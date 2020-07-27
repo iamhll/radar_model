@@ -6,6 +6,11 @@
   %  Description    : survey dbf
   %
 %-------------------------------------------------------------------------------
+  %
+  %  Modified       : 2020-07-27 by HLL
+  %  Description    : maintained
+  %
+%-------------------------------------------------------------------------------
 
 %*** INIT **********************************************************************
 %clc;
@@ -77,7 +82,7 @@ for idxDisAntTx = 1:NUMB_DIS_ANT_TX_TST
     end
 
     %% prepare datSig
-    datSig = zeros(numel(DATA_DIS_ANT), 1);
+    datSig = zeros(numel(DATA_DIS_ANT), 1) + 1;
 
     %% get curve
     % calculate
