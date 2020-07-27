@@ -57,6 +57,7 @@ while ~feof(fpt)
 
         % cluster
         [idxGrp, idxKnl] = dbscan(datLst, 5, 1, 'distance', @cstCustom);
+        %[idxGrp, idxKnl] = dbscanMine1(datLst, 5, 1, @cstCustom);
 
         % reset figure
         clf;
