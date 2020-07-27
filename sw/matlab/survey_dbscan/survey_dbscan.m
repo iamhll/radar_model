@@ -56,7 +56,7 @@ while ~feof(fpt)
         datLst(:, IDX_ANG) = datLst(:, IDX_ANG) / 180 * pi;
 
         % cluster
-        [idxGrp, idxKnl] = dbscan(datLst, 5, 1, 'Distance', @cstCustom);
+        [idxGrp, idxKnl] = dbscan(datLst, 5, 1, 'distance', @cstCustom);
 
         % reset figure
         clf;

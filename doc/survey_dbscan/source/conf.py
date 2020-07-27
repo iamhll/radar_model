@@ -17,12 +17,12 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'survey dml'
+project = 'survey dbscan'
 copyright = '2020, llhuang'
 author = 'llhuang'
 
 # The full version, including alpha/beta/rc tags
-release = '2020.05.28'
+release = '2020.07.25'
 
 
 # -- General configuration ---------------------------------------------------
@@ -61,17 +61,6 @@ html_theme_options = {
     "collapsiblesidebar": "false",
     "body_min_width"    : 0,
     "body_max_width"    : "none",
-    # 1
-    #"footerbgcolor"     : "#527da6",
-    #"footertextcolor"   : "#ffffff",
-    #"sidebarbgcolor"    : "#f0f0f0",
-    #"sidebarbtncolor"   : "#355f7c",
-    #"sidebartextcolor"  : "#20435c",
-    #"sidebarlinkcolor"  : "#355f7c",
-    #"relbarbgcolor"     : "#527da6",
-    #"relbartextcolor"   : "#ffffff",
-    #"relbarlinkcolor"   : "#ffffff"
-    # 2
     "footerbgcolor"     : "#426d96",
     "footertextcolor"   : "#ffffff",
     "sidebarbgcolor"    : "#527da6",
