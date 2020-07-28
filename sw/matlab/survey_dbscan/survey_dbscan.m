@@ -6,6 +6,11 @@
   %  Description    : survey_dbscan
   %
 %-------------------------------------------------------------------------------
+  %
+  %  Created        : 2020-07-21
+  %  Description    : visualization optimized
+  %
+%-------------------------------------------------------------------------------
 
 %*** INIT **********************************************************************
 clc;
@@ -33,7 +38,8 @@ fpt = fopen('import/07-01-17-27-autoSave_11_Tatget_2020_07_01_17_27_33_CTLRR-300
 
 % open figure
 figure(1);
-set(gcf, 'position', [2, 42, 958, 953]);
+%set(gcf, 'position', [2, 42, 958 ,  953]);
+set(gcf, 'position', [2, 42, 1278, 1313]);
 
 % core loop
 datFul = ones(128, 4);
@@ -63,7 +69,7 @@ while ~feof(fpt)
         clf;
 
         % plot before cluster
-        subplot(1,2,1);
+        subplot(1,3,1);
         hold on;
         % +
         idxFlt = datLst(:,IDX_VEL) == 0;
@@ -81,19 +87,44 @@ while ~feof(fpt)
         grid on;
 
         % plot after cluster
-        subplot(1,2,2);
+        subplot(1,3,2);
         hold on;
         % group
         for i = 1:max(idxGrp)
-            idxFlt = idxGrp == i & idxKnl == 1;
+            idxFlt = idxGrp == i;
             plot(datLst(idxFlt,IDX_RNG) .* sin(datLst(idxFlt,IDX_ANG)), datLst(idxFlt,IDX_RNG) .* cos(datLst(idxFlt,IDX_ANG)), 'o');
-            idxFlt = idxGrp == i & idxKnl == 0;
-            plot(datLst(idxFlt,IDX_RNG) .* sin(datLst(idxFlt,IDX_ANG)), datLst(idxFlt,IDX_RNG) .* cos(datLst(idxFlt,IDX_ANG)), 'x');
         end
         idxFlt = idxGrp == -1 & idxKnl == 0;
         plot(datLst(idxFlt,IDX_RNG) .* sin(datLst(idxFlt,IDX_ANG)), datLst(idxFlt,IDX_RNG) .* cos(datLst(idxFlt,IDX_ANG)), 's');
         % set figure
         title('after cluster (color is used to indicate group)');
+        axis equal;
+        axis([-25, 25, 0, 100]);
+        grid on;
+
+        % plot after reformat
+        subplot(1,3,3);
+        hold on;
+        % group
+        for i = 1:max(idxGrp)
+            idxFlt = idxGrp == i & idxKnl == 1;
+            datX = datLst(idxFlt,IDX_RNG) .* sin(datLst(idxFlt,IDX_ANG));
+            datY = datLst(idxFlt,IDX_RNG) .* cos(datLst(idxFlt,IDX_ANG));
+            if numel(datX) == 1
+                plot(median(datX), median(datY), 'or');
+            elseif numel(datX) == 2
+                plot(median(datX), median(datY), 'og');
+                plot(datX, datY, 'k--');
+            else
+                plot(median(datX), median(datY), 'ob');
+                idxFlt = boundary(datX, datY);
+                plot(datX(idxFlt), datY(idxFlt), 'k--');
+            end
+        end
+        %idxFlt = idxGrp == -1 & idxKnl == 0;
+        %plot(datLst(idxFlt,IDX_RNG) .* sin(datLst(idxFlt,IDX_ANG)), datLst(idxFlt,IDX_RNG) .* cos(datLst(idxFlt,IDX_ANG)), 's');
+        % set figure
+        title('after cluster (color is used to indicate number)');
         axis equal;
         axis([-25, 25, 0, 100]);
         grid on;
