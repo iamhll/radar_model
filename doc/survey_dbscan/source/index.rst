@@ -3,10 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-对DML算法的调研及其与DBF算法的对比
-==================================
+对DBSCAN算法的调研
+==================
 
 .. toctree::
    :maxdepth: 2
    :caption: 目录
 
+   背景说明/主页

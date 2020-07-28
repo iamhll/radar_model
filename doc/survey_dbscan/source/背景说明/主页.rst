@@ -1,0 +1,78 @@
+.. .............................................................................
+..
+.. Filename       : 主页.rst
+.. Author         : Huang Leilei
+.. Created        : 2020-07-25
+.. Description    : 主页
+..
+.. .............................................................................
+
+========
+背景说明
+========
+
+--------
+算法简介
+--------
+
+*   DBSCAN（Density-Based Spatial Clustering of Applications with Noise）是一种基于密度的聚类算法。
+
+--------
+核心原理
+--------
+
+*   翻译自《A-Density-Based-Algorithm-for-Discovering-Clusters-in-Large-Spatial-Databases-with-Noise》（作者：Martin Ester）
+
+    #.  点的Eps邻域
+
+        对于任意的点p和q，若其满足以下条件，则称q在p的Eps邻域内
+
+        .. math::
+
+            N_{Eps}(p) = \{ q \in D | dist(p, q) \le Eps \}
+
+        \
+
+    #.  密度直达
+
+        对于任意的点p和q，若其满足以下条件，则称p从q密度直达
+
+        .. math::
+
+            p \in N_{Eps}(q)
+
+            |N_{Eps}(q)| \ge MinPts
+
+        \
+
+    #.  密度可达
+
+        对于任意的点p1, p2...pn, 并记p = p1，q = qn，若其满足pi从pi-1密度直达，则称p从q密度可达
+
+    #.  密度相连
+
+        对于任意的点o，p，q，若p和q都从o密度可达，则称p与q密度相连
+
+        \
+
+    #.  簇
+
+        对于任意的点集C，若对于任意的点q和p都满足以下条件，则称其为簇
+
+        .. math::
+
+            if \ p \in C \ and \ q 从 p 密度可达, then \ q \in C
+
+            if \ p, q \in C, then \ p从q密度相连
+
+        \
+
+    #.  噪声
+
+        对于任意的点p，若其不属于任何的簇，则称其为噪声
+
+        \
+
+    .. image:: 核心原理1.png
+
+    .. image:: 核心原理2.png
