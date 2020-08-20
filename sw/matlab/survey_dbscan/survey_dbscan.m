@@ -36,7 +36,7 @@ IDX_SNR = 4;
 
 %*** MAIN BODY *****************************************************************
 % open file
-fpt = fopen('import/07-01-17-27-autoSave_11_Tatget_2020_07_01_17_27_33_CTLRR-300-V2_1_RawTarget.csv');
+fpt = fopen('import/minSet.csv');
 
 % open figure
 figure(1);
@@ -79,7 +79,7 @@ while ~feof(fpt)
         % log
         fprintf('%04d\n', idxFra);
         idxFra = idxFra + 1;
-
+%{
         % reset figure
         clf;
 
@@ -146,6 +146,7 @@ while ~feof(fpt)
 
         % draw now
         drawnow;
+%}
     end
 end
 

@@ -1,7 +1,7 @@
 <deployment-project plugin="plugin.coder" plugin-version="R2018b">
-  <configuration build-checksum="2640515255" file="E:\ACT_LOCAL\pj_git_radar_model\sw\matlab\survey_dml\survey_dml_core_2.prj" location="E:\ACT_LOCAL\pj_git_radar_model\sw\matlab\survey_dml" name="survey_dml_core_2" target="target.unifiedcoder" target-name="MATLAB Coder">
+  <configuration build-checksum="1459872826" file="E:\ACT_LOCAL\pj_git_radar_model\sw\matlab\survey_dbscan\dbscanMine2.prj" location="E:\ACT_LOCAL\pj_git_radar_model\sw\matlab\survey_dbscan" name="dbscanMine2" target="target.unifiedcoder" target-name="MATLAB Coder">
     <profile key="profile.mex">
-      <param.BuiltInstrumentedMex>false</param.BuiltInstrumentedMex>
+      <param.BuiltInstrumentedMex />
       <param.RanInstrumentedMex>false</param.RanInstrumentedMex>
       <param.WorkingFolder>option.WorkingFolder.Project</param.WorkingFolder>
       <param.SpecifiedWorkingFolder />
@@ -60,7 +60,7 @@
       <param.ConstantInputs>option.ConstantInputs.CheckValues</param.ConstantInputs>
       <param.EnableCRICodeCoverage>true</param.EnableCRICodeCoverage>
       <param.EnableJIT>false</param.EnableJIT>
-      <param.EnableJITSilentBailOut>false</param.EnableJITSilentBailOut>
+      <param.EnableJITSilentBailOut />
       <param.CheckForIssuesJIT>true</param.CheckForIssuesJIT>
       <unset>
         <param.BuiltInstrumentedMex />
@@ -331,7 +331,6 @@
         <param.FilePartitionMethod />
         <param.GenerateComments />
         <param.CommentStyle />
-        <param.MATLABSourceComments />
         <param.MATLABFcnDesc />
         <param.ConvertIfToSwitch />
         <param.PreserveExternInFcnDecls />
@@ -826,13 +825,13 @@
       </unset>
     </profile>
     <param.objective>option.objective.c</param.objective>
-    <param.WorkflowStep>generateCode</param.WorkflowStep>
+    <param.WorkflowStep>workflowSummary</param.WorkflowStep>
     <param.TestSnippets>
-      <item>survey_dml</item>
+      <item>survey_dbscan</item>
     </param.TestSnippets>
     <param.ExternalFcnMajority>column</param.ExternalFcnMajority>
     <param.UseGlobals>option.UseGlobals.No</param.UseGlobals>
-    <param.outputfile>${PROJECT_ROOT}\codegen\lib\survey_dml_core_2\survey_dml_core_2.lib</param.outputfile>
+    <param.outputfile>${PROJECT_ROOT}\codegen\lib\dbscanMine2\dbscanMine2.lib</param.outputfile>
     <param.version>R2012a</param.version>
     <param.HasECoderFeatures>true</param.HasECoderFeatures>
     <param.HasGpuCoder>true</param.HasGpuCoder>
@@ -847,22 +846,22 @@
     <param.AutoInferUnboundedSizeThreshold>2048</param.AutoInferUnboundedSizeThreshold>
     <param.EnableFixedPointStep>false</param.EnableFixedPointStep>
     <param.EnableScreener>true</param.EnableScreener>
-    <param.AnnotationChecksum>4128216208</param.AnnotationChecksum>
+    <param.AnnotationChecksum>3903605899</param.AnnotationChecksum>
     <var.LegacyTarget />
     <var.MirrorOnOpen>false</var.MirrorOnOpen>
     <param.FixedPointEnabled>false</param.FixedPointEnabled>
     <var.redirectedInputTypeData />
-    <var.DismissScreener>false</var.DismissScreener>
+    <var.DismissScreener>true</var.DismissScreener>
     <param.unifiedParamStorage />
-    <var.gc.lastOutputRoot>codegen\lib\survey_dml_core_2</var.gc.lastOutputRoot>
+    <var.gc.lastOutputRoot>codegen\lib\dbscanMine2</var.gc.lastOutputRoot>
     <var.gc.lastOutputType>C_CODE</var.gc.lastOutputType>
-    <var.gc.preBuildChecksum>2640515255</var.gc.preBuildChecksum>
-    <var.cfi.lastOutputRoot>codegen\mex\survey_dml_core_2</var.cfi.lastOutputRoot>
-    <var.cfi.preBuildChecksum>3098984765</var.cfi.preBuildChecksum>
-    <var.lastCfiTestSnippet>survey_dml</var.lastCfiTestSnippet>
+    <var.gc.preBuildChecksum>1459872826</var.gc.preBuildChecksum>
+    <var.cfi.lastOutputRoot>codegen\mex\dbscanMine2</var.cfi.lastOutputRoot>
+    <var.cfi.preBuildChecksum>1845974189</var.cfi.preBuildChecksum>
+    <var.lastCfiTestSnippet>survey_dbscan</var.lastCfiTestSnippet>
     <var.outdatedOnRestore>false</var.outdatedOnRestore>
-    <var.lastUserSourceChecksum>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;checksum&gt;&lt;includedFiles&gt;&lt;file&gt;E:\ACT_LOCAL\pj_git_radar_model\sw\matlab\survey_dml\survey_dml_core_2.m&lt;/file&gt;&lt;/includedFiles&gt;&lt;value&gt;2464691976&lt;/value&gt;&lt;/checksum&gt;</var.lastUserSourceChecksum>
-    <var.sourceSetState>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;sourceModel&gt;&lt;primarySourceFiles&gt;&lt;file&gt;E:\ACT_LOCAL\pj_git_radar_model\sw\matlab\survey_dml\survey_dml_core_2.m&lt;/file&gt;&lt;/primarySourceFiles&gt;&lt;fixedPointSourceFiles/&gt;&lt;fixedPointSourceRegistered&gt;false&lt;/fixedPointSourceRegistered&gt;&lt;fixedPointSourceSelected&gt;false&lt;/fixedPointSourceSelected&gt;&lt;/sourceModel&gt;</var.sourceSetState>
+    <var.lastUserSourceChecksum>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;checksum&gt;&lt;includedFiles&gt;&lt;file&gt;E:\ACT_LOCAL\pj_git_radar_model\sw\matlab\survey_dbscan\dbscanMine2.m&lt;/file&gt;&lt;/includedFiles&gt;&lt;value&gt;864603896&lt;/value&gt;&lt;/checksum&gt;</var.lastUserSourceChecksum>
+    <var.sourceSetState>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;sourceModel&gt;&lt;primarySourceFiles&gt;&lt;file&gt;E:\ACT_LOCAL\pj_git_radar_model\sw\matlab\survey_dbscan\dbscanMine2.m&lt;/file&gt;&lt;/primarySourceFiles&gt;&lt;fixedPointSourceFiles/&gt;&lt;fixedPointSourceRegistered&gt;false&lt;/fixedPointSourceRegistered&gt;&lt;fixedPointSourceSelected&gt;false&lt;/fixedPointSourceSelected&gt;&lt;/sourceModel&gt;</var.sourceSetState>
     <param.forceMexBuild>false</param.forceMexBuild>
     <param.NoDefaultJIT>false</param.NoDefaultJIT>
     <param.configImportActive>false</param.configImportActive>
@@ -871,10 +870,10 @@
     <var.boundToGui>true</var.boundToGui>
     <var.isConfigDialog>false</var.isConfigDialog>
     <var.ecoderEnabled>true</var.ecoderEnabled>
-    <param.mex.outputfile>survey_dml_core_2_mex</param.mex.outputfile>
-    <param.grt.outputfile>survey_dml_core_2</param.grt.outputfile>
+    <param.mex.outputfile>dbscanMine2_mex</param.mex.outputfile>
+    <param.grt.outputfile>dbscanMine2</param.grt.outputfile>
     <param.artifact>option.target.artifact.lib</param.artifact>
-    <param.outputfile>${PROJECT_ROOT}\codegen\lib\survey_dml_core_2\survey_dml_core_2.lib</param.outputfile>
+    <param.outputfile>${PROJECT_ROOT}\codegen\lib\dbscanMine2\dbscanMine2.lib</param.outputfile>
     <param.CppNamespace />
     <param.gpu.Enabled>false</param.gpu.Enabled>
     <param.gpu.KernelNamePrefix />
@@ -975,7 +974,6 @@
       <var.MirrorOnOpen />
       <param.FixedPointEnabled />
       <var.redirectedInputTypeData />
-      <var.DismissScreener />
       <param.unifiedParamStorage />
       <var.outdatedOnRestore />
       <param.forceMexBuild />
@@ -1065,30 +1063,23 @@
       <param.FixedPointUseDesignRanges />
     </unset>
     <fileset.entrypoints>
-      <file custom-data-expanded="false" value="${PROJECT_ROOT}\survey_dml_core_2.m">
-        <Marker>1591332621162</Marker>
+      <file custom-data-expanded="false" value="${PROJECT_ROOT}\dbscanMine2.m">
+        <Marker>1597908452588</Marker>
       </file>
     </fileset.entrypoints>
     <fileset.testbench>
-      <file>${PROJECT_ROOT}\survey_dml.m</file>
+      <file>${PROJECT_ROOT}\survey_dbscan.m</file>
     </fileset.testbench>
     <fileset.inputtypes>
-      <file custom-data-expanded="false" value="${PROJECT_ROOT}\survey_dml_core_2.m">
-        <Inputs fileName="survey_dml_core_2.m" functionName="survey_dml_core_2">
-          <Input Name="NUMB_RND" typeId="0" />
-          <Input Name="NUMB_SMP" typeId="0" />
-          <Input Name="INDX_FIG" typeId="0" />
-          <Input Name="DATA_DIS_ANT" typeId="1" />
-          <Input Name="DATA_COE_WIN" typeId="1" />
-          <Input Name="DATA_ANG_OBJ" typeId="2" />
-          <Input Name="DATA_POW_OBJ" typeId="2" />
-          <Input Name="DATA_SNR" typeId="3" />
-          <Input Name="DATA_DLT_ANG_TST" typeId="3" />
-          <Input Name="DATA_RNG_ANG_TST" typeId="3" />
+      <file custom-data-expanded="false" value="${PROJECT_ROOT}\dbscanMine2.m">
+        <Inputs fileName="dbscanMine2.m" functionName="dbscanMine2">
+          <Input Name="cost" typeId="0" />
+          <Input Name="epsilon" typeId="1" />
+          <Input Name="minpts" typeId="1" />
           <idpTable>
             <type typeId="0">
               <Class>double</Class>
-              <Size>1 x 1</Size>
+              <Size>:inf x :inf</Size>
               <Value />
               <InitialValue />
               <UserDefined>true</UserDefined>
@@ -1096,24 +1087,6 @@
               <Sparse>false</Sparse>
             </type>
             <type typeId="1">
-              <Class>double</Class>
-              <Size>:inf x 1</Size>
-              <Value />
-              <InitialValue />
-              <UserDefined>true</UserDefined>
-              <Complex>false</Complex>
-              <Sparse>false</Sparse>
-            </type>
-            <type typeId="2">
-              <Class>double</Class>
-              <Size>1 x 2</Size>
-              <Value />
-              <InitialValue />
-              <UserDefined>false</UserDefined>
-              <Complex>false</Complex>
-              <Sparse>false</Sparse>
-            </type>
-            <type typeId="3">
               <Class>double</Class>
               <Size>1 x 1</Size>
               <Value />
@@ -1127,7 +1100,7 @@
       </file>
     </fileset.inputtypes>
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\codegen\lib\survey_dml_core_2" name="survey_dml_core_2.lib" optional="false">E:\ACT_LOCAL\pj_git_radar_model\sw\matlab\survey_dml\codegen\lib\survey_dml_core_2\survey_dml_core_2.lib</file>
+      <file location="${PROJECT_ROOT}\codegen\lib\dbscanMine2" name="dbscanMine2.lib" optional="false">E:\ACT_LOCAL\pj_git_radar_model\sw\matlab\survey_dbscan\codegen\lib\dbscanMine2\dbscanMine2.lib</file>
     </build-deliverables>
     <workflow />
     <matlab>
