@@ -70,7 +70,8 @@ while ~feof(fpt)
         % cluster
         datCstLst = pdist2(datPntLst, datPntLst, @cstCustom);
         %[idxGrp, idxKnl] = dbscan     (datCstLst, 10, 1, 'distance', 'precomputed');
-        [idxGrp, idxKnl] = dbscanMine1(datCstLst, 10, 1);
+        %[idxGrp, idxKnl] = dbscanMine1(datCstLst, 10, 1);
+        [idxGrp, idxKnl] = dbscanMine2(datCstLst, 10, 1);
 
         % reset idx
         idxPnt = 1;
