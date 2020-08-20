@@ -7,8 +7,10 @@
   %
 %-------------------------------------------------------------------------------
   %
-  %  Created        : 2020-07-21
+  %  Modified       : 2020-07-21 by HLL
   %  Description    : visualization optimized
+  %  Modified       : 2020-08-17 by HLL
+  %  Description    : precomputed cost adopted
   %
 %-------------------------------------------------------------------------------
 
@@ -42,28 +44,40 @@ figure(1);
 set(gcf, 'position', [2, 42, 1278, 1313]);
 
 % core loop
-datFul = ones(128, 4);
-idx = 1;
+datPntFul = ones(128, 4);
+idxPnt = 1;
+idxFra = 1;
 while ~feof(fpt)
+    % get data
     datStr = fgetl(fpt);
     %fprintf("%s", datFul);
     datTokens = regexp(datStr, '^\d+,([0-9.-]+),([0-9.-]+),([0-9.-]+),([0-9.-]+),.*',  'tokens');
     if ~isempty(datTokens)
         for i = 1:4
-            datFul(idx, i) = str2double(datTokens{1}{i});
+            datPntFul(idxPnt, i) = str2double(datTokens{1}{i});
         end
-        idx = idx + 1;
+        idxPnt = idxPnt + 1;
     end
+
+    % test end
     if strcmp(datStr(1:3), 'END')
         % filter
-        datLst = datFul(1:idx-1, :);
+        datPntLst = datPntFul(1:idxPnt-1, :);
 
         % convert
-        datLst(:, IDX_ANG) = datLst(:, IDX_ANG) / 180 * pi;
+        datPntLst(:, IDX_ANG) = datPntLst(:, IDX_ANG) / 180 * pi;
 
         % cluster
-        [idxGrp, idxKnl] = dbscan(datLst, 5, 1, 'distance', @cstCustom);
-        %[idxGrp, idxKnl] = dbscanMine1(datLst, 5, 1, @cstCustom);
+        datCstLst = pdist2(datPntLst, datPntLst, @cstCustom);
+        %[idxGrp, idxKnl] = dbscan     (datCstLst, 10, 1, 'distance', 'precomputed');
+        [idxGrp, idxKnl] = dbscanMine1(datCstLst, 10, 1);
+
+        % reset idx
+        idxPnt = 1;
+
+        % log
+        fprintf('%04d\n', idxFra);
+        idxFra = idxFra + 1;
 
         % reset figure
         clf;
@@ -72,14 +86,14 @@ while ~feof(fpt)
         subplot(1,3,1);
         hold on;
         % +
-        idxFlt = datLst(:,IDX_VEL) == 0;
-        plot(datLst(idxFlt,IDX_RNG) .* sin(datLst(idxFlt,IDX_ANG)), datLst(idxFlt,IDX_RNG) .* cos(datLst(idxFlt,IDX_ANG)), 'og');
+        idxFlt = datPntLst(:,IDX_VEL) == 0;
+        plot(datPntLst(idxFlt,IDX_RNG) .* sin(datPntLst(idxFlt,IDX_ANG)), datPntLst(idxFlt,IDX_RNG) .* cos(datPntLst(idxFlt,IDX_ANG)), 'og');
         % 0
-        idxFlt = datLst(:,IDX_VEL) > 0;
-        plot(datLst(idxFlt,IDX_RNG) .* sin(datLst(idxFlt,IDX_ANG)), datLst(idxFlt,IDX_RNG) .* cos(datLst(idxFlt,IDX_ANG)), 'ob');
+        idxFlt = datPntLst(:,IDX_VEL) > 0;
+        plot(datPntLst(idxFlt,IDX_RNG) .* sin(datPntLst(idxFlt,IDX_ANG)), datPntLst(idxFlt,IDX_RNG) .* cos(datPntLst(idxFlt,IDX_ANG)), 'ob');
         % -
-        idxFlt = datLst(:,IDX_VEL) < 0;
-        plot(datLst(idxFlt,IDX_RNG) .* sin(datLst(idxFlt,IDX_ANG)), datLst(idxFlt,IDX_RNG) .* cos(datLst(idxFlt,IDX_ANG)), 'or');
+        idxFlt = datPntLst(:,IDX_VEL) < 0;
+        plot(datPntLst(idxFlt,IDX_RNG) .* sin(datPntLst(idxFlt,IDX_ANG)), datPntLst(idxFlt,IDX_RNG) .* cos(datPntLst(idxFlt,IDX_ANG)), 'or');
         % set figure
         title('before cluster (color is used to indicate speed)');
         axis equal;
@@ -92,10 +106,10 @@ while ~feof(fpt)
         % group
         for i = 1:max(idxGrp)
             idxFlt = idxGrp == i;
-            plot(datLst(idxFlt,IDX_RNG) .* sin(datLst(idxFlt,IDX_ANG)), datLst(idxFlt,IDX_RNG) .* cos(datLst(idxFlt,IDX_ANG)), 'o');
+            plot(datPntLst(idxFlt,IDX_RNG) .* sin(datPntLst(idxFlt,IDX_ANG)), datPntLst(idxFlt,IDX_RNG) .* cos(datPntLst(idxFlt,IDX_ANG)), 'o');
         end
         idxFlt = idxGrp == -1 & idxKnl == 0;
-        plot(datLst(idxFlt,IDX_RNG) .* sin(datLst(idxFlt,IDX_ANG)), datLst(idxFlt,IDX_RNG) .* cos(datLst(idxFlt,IDX_ANG)), 's');
+        plot(datPntLst(idxFlt,IDX_RNG) .* sin(datPntLst(idxFlt,IDX_ANG)), datPntLst(idxFlt,IDX_RNG) .* cos(datPntLst(idxFlt,IDX_ANG)), 's');
         % set figure
         title('after cluster (color is used to indicate group)');
         axis equal;
@@ -108,8 +122,8 @@ while ~feof(fpt)
         % group
         for i = 1:max(idxGrp)
             idxFlt = idxGrp == i & idxKnl == 1;
-            datX = datLst(idxFlt,IDX_RNG) .* sin(datLst(idxFlt,IDX_ANG));
-            datY = datLst(idxFlt,IDX_RNG) .* cos(datLst(idxFlt,IDX_ANG));
+            datX = datPntLst(idxFlt,IDX_RNG) .* sin(datPntLst(idxFlt,IDX_ANG));
+            datY = datPntLst(idxFlt,IDX_RNG) .* cos(datPntLst(idxFlt,IDX_ANG));
             if numel(datX) == 1
                 plot(median(datX), median(datY), 'or');
             elseif numel(datX) == 2
@@ -131,9 +145,6 @@ while ~feof(fpt)
 
         % draw now
         drawnow;
-
-        % reset idx
-        idx = 1;
     end
 end
 
