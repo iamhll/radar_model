@@ -46,7 +46,7 @@ set(gcf, 'position', [2, 42, 1278, 1313]);
 % core loop
 datPntFul = ones(128, 4);
 idxPnt = 1;
-idxFra = 1;
+idxFra = -1;
 while ~feof(fpt)
     % get data
     datStr = fgetl(fpt);
@@ -96,9 +96,10 @@ while ~feof(fpt)
         idxFlt = datPntLst(:,IDX_VEL) < 0;
         plot(datPntLst(idxFlt,IDX_RNG) .* sin(datPntLst(idxFlt,IDX_ANG)), datPntLst(idxFlt,IDX_RNG) .* cos(datPntLst(idxFlt,IDX_ANG)), 'or');
         % set figure
-        title('before cluster (color is used to indicate speed)');
-        axis equal;
-        axis([-25, 25, 0, 100]);
+        %title('before cluster (color is used to indicate speed)');
+        title('before cluster');
+        %axis equal;
+        axis([-20, 20, 0, 200]);
         grid on;
 
         % plot after cluster
@@ -112,9 +113,10 @@ while ~feof(fpt)
         idxFlt = idxGrp == -1 & idxKnl == 0;
         plot(datPntLst(idxFlt,IDX_RNG) .* sin(datPntLst(idxFlt,IDX_ANG)), datPntLst(idxFlt,IDX_RNG) .* cos(datPntLst(idxFlt,IDX_ANG)), 's');
         % set figure
-        title('after cluster (color is used to indicate group)');
-        axis equal;
-        axis([-25, 25, 0, 100]);
+        %title('after cluster (color is used to indicate group)');
+        title(['after cluster (', num2str(idxFra, '%04d'), ')']);
+        %axis equal;
+        axis([-20, 20, 0, 200]);
         grid on;
 
         % plot after reformat
@@ -139,9 +141,10 @@ while ~feof(fpt)
         %idxFlt = idxGrp == -1 & idxKnl == 0;
         %plot(datLst(idxFlt,IDX_RNG) .* sin(datLst(idxFlt,IDX_ANG)), datLst(idxFlt,IDX_RNG) .* cos(datLst(idxFlt,IDX_ANG)), 's');
         % set figure
-        title('after cluster (color is used to indicate number)');
-        axis equal;
-        axis([-25, 25, 0, 100]);
+        %title('after cluster (color is used to indicate number)');
+        title('after cluster');
+        %axis equal;
+        axis([-20, 20, 0, 200]);
         grid on;
 
         % draw now
