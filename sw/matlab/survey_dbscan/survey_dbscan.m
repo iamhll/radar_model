@@ -1,19 +1,19 @@
 %-------------------------------------------------------------------------------
-  %
-  %  Filename       : survey_dbscan.m
-  %  Author         : Huang Leilei
-  %  Created        : 2020-07-19
-  %  Description    : survey_dbscan
-  %
+    %
+    %  Filename       : survey_dbscan.m
+    %  Author         : Huang Leilei
+    %  Created        : 2020-07-19
+    %  Description    : survey_dbscan
+    %
 %-------------------------------------------------------------------------------
-  %
-  %  Modified       : 2020-07-21 by HLL
-  %  Description    : visualization optimized
-  %  Modified       : 2020-08-17 by HLL
-  %  Description    : precomputed cost adopted
-  %  Modified       : 2020-09-06 by HLL
-  %  Description    : data from difference tx processed separately
-  %
+    %
+    %  Modified       : 2020-07-21 by HLL
+    %  Description    : visualization optimized
+    %  Modified       : 2020-08-17 by HLL
+    %  Description    : precomputed cost adopted
+    %  Modified       : 2020-09-06 by HLL
+    %  Description    : data from difference tx processed separately
+    %
 %-------------------------------------------------------------------------------
 
 %*** INIT **********************************************************************
@@ -42,8 +42,8 @@ fpt = fopen('import/1.7.1.1-1_Tatget_2020_08_09_14_10_14_CTLRR-300-V2_1_RawTarge
 
 % open figure
 figure(1);
-%set(gcf, 'position', [2, 42, 958 ,  953]);
-set(gcf, 'position', [2, 42, 1278, 1313]);
+set(gcf, 'position', [2, 42, 958 ,  953]);    % for 1920x1080 screen
+%set(gcf, 'position', [2, 42, 1278, 1313]);    % for 2560x1400 screen
 
 % core loop
 datPntFul = ones(128, 4);
