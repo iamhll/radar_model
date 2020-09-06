@@ -11,6 +11,8 @@
   %  Description    : visualization optimized
   %  Modified       : 2020-08-17 by HLL
   %  Description    : precomputed cost adopted
+  %  Modified       : 2020-09-06 by HLL
+  %  Description    : data from difference tx processed separately
   %
 %-------------------------------------------------------------------------------
 
@@ -36,7 +38,7 @@ IDX_SNR = 4;
 
 %*** MAIN BODY *****************************************************************
 % open file
-fpt = fopen('import/07-01-17-27-autoSave_11_Tatget_2020_07_01_17_27_33_CTLRR-300-V2_1_RawTarget.csv');
+fpt = fopen('import/1.7.1.1-1_Tatget_2020_08_09_14_10_14_CTLRR-300-V2_1_RawTarget_5000~5999.csv');
 
 % open figure
 figure(1);
@@ -51,7 +53,7 @@ while ~feof(fpt)
     % get data
     datStr = fgetl(fpt);
     %fprintf("%s", datFul);
-    datTokens = regexp(datStr, '^\d+,([0-9.-]+),([0-9.-]+),([0-9.-]+),([0-9.-]+),.*',  'tokens');
+    datTokens = regexp(datStr, '^\d+,([0-9.-]+),([0-9.-]+),([0-9.-]+),([0-9.-]+)', 'tokens');
     if ~isempty(datTokens)
         for i = 1:4
             datPntFul(idxPnt, i) = str2double(datTokens{1}{i});
@@ -62,7 +64,14 @@ while ~feof(fpt)
     % test end
     if strcmp(datStr(1:3), 'END')
         % filter
-        datPntLst = datPntFul(1:idxPnt-1, :);
+        %datPntLst = datPntFul(1:idxPnt-1, :);
+        for i = 1:idxPnt-1
+            if datPntFul(i,1) == 1024
+                %datPntLst = datPntFul(1:i-1, :);
+                datPntLst = datPntFul(i+1:idxPnt-1, :);
+                break;
+            end
+        end
 
         % convert
         datPntLst(:, IDX_ANG) = datPntLst(:, IDX_ANG) / 180 * pi;
