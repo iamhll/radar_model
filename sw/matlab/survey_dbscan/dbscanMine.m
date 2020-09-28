@@ -227,7 +227,7 @@ function pushbuttonDown_Callback(hObject, eventdata, handles)
 % get data
 idxFra = get(handles.editCur, 'string');
 idxFra = str2double(idxFra);
-idxFra = min(handles.idxFraMax, idxFra + 1);
+idxFra = min(handles.idxFraMax, max(handles.idxFraMin, idxFra + 1));
 set(handles.editCur, 'string', num2str(idxFra));
 logAftGrp(handles);
 drawBfrGrp(handles);
@@ -434,7 +434,7 @@ function pushbuttonUp_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 idxFra = get(handles.editCur, 'string');
 idxFra = str2double(idxFra);
-idxFra = min(handles.idxFraMin, idxFra - 1);
+idxFra = min(handles.idxFraMax, max(handles.idxFraMin, idxFra - 1));
 set(handles.editCur, 'string', num2str(idxFra));
 logAftGrp(handles);
 drawBfrGrp(handles);
@@ -536,6 +536,15 @@ function editCur_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of editCur as text
 %        str2double(get(hObject,'String')) returns contents of editCur as a double
+idxFra = get(handles.editCur, 'string');
+idxFra = str2double(idxFra);
+idxFra = min(handles.idxFraMax, max(handles.idxFraMin, idxFra));
+set(handles.editCur, 'string', num2str(idxFra));
+logAftGrp(handles)
+drawBfrGrp(handles);
+drawAftGrp(handles);
+drawnow;
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
