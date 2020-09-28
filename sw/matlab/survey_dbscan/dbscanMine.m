@@ -22,7 +22,7 @@ function varargout = dbscanMine(varargin)
 
 % Edit the above text to modify the response to help dbscanMine
 
-% Last Modified by GUIDE v2.5 25-Sep-2020 11:27:18
+% Last Modified by GUIDE v2.5 28-Sep-2020 19:34:11
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -86,97 +86,152 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in pushbuttonOpen.
-function pushbuttonOpen_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbuttonOpen (see GCBO)
+% --- Executes on button press in pushbuttonload.
+function pushbuttonload_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbuttonload (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+% before everything
+set(handles.textBusy, 'string', 'busy');
+
+% open file
 [fileName, filePath] = uigetfile({'*.csv'});
+handles.filePath = filePath;
 set(handles.editFileName, 'string', fileName)
-handles.fptInput = fopen([filePath, fileName], 'r');
-handles.fptOutput = fopen([filePath, fileName, '.group.log'], 'w');
-fprintf(handles.fptOutput, '    %-7s %-7s %-7s %-7s %-2s %-2s\n', 'RNG', 'VEL', 'ANG', 'SNR', 'ID', 'ID (modified)');
-handles.datPntLst = [];
-handles.cntFrame = [];
-guidata(hObject, handles);
+fpt = fopen([filePath, fileName], 'r');
 
-
-% --- Executes on button press in pushbuttonProcess.
-function pushbuttonProcess_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbuttonProcess (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% get data
 % parameter
 IDX_RNG = 1;
 IDX_VEL = 2;
 IDX_ANG = 3;
 IDX_SNR = 4;
+IDX_IDO = 5;
+IDX_KNL = 6;
+IDX_IDM = 7;
+NUM_DAT_MAX = 128;
+NUM_FRA_AVE = 1024;
 
-% save
-if ~isempty(handles.cntFrame) && ~isempty(handles.datPntLst)
-    fprintf(handles.fptOutput, 'BGN OF FRAME %d\n', handles.cntFrame);
-    fprintf(handles.fptOutput, '    %-7.2f %-7.2f %-7.2f %-7.2f %02d %02d\n', [handles.datPntLst, handles.idxGrpOri, handles.idxGrp]');
-    fprintf(handles.fptOutput, 'END OF FRAME %d\n', handles.cntFrame);
-end
+% variables
+        cntPntFra = ones(             1          , 1      );
+handles.cntPntAll = ones(NUM_FRA_AVE, 1          , 1      );
+        datPntFra = ones(             NUM_DAT_MAX, IDX_SNR);
+handles.datPntAll = ones(NUM_FRA_AVE, NUM_DAT_MAX, IDX_IDM);
+handles.idxFraMin = inf;
+        idxFra    = [];
+handles.idxFraMax = -inf;
 
-% init
-datPntFul = ones(128, 4);
-idxPnt = 1;
-
-% get data
+% main loop
 while (1)
-    % grep
-    datStr = fgetl(handles.fptInput);
-    datTokens = regexp(datStr, 'FrameNb:([0-9]+)', 'tokens');
-    if ~isempty(datTokens)
-        cntFrame = str2double(datTokens{1}{1});
-    end
-    datTokens = regexp(datStr, '^\d+,([0-9.-]+),([0-9.-]+),([0-9.-]+),([0-9.-]+)', 'tokens');
-    if ~isempty(datTokens)
-        for i = 1:4
-            datPntFul(idxPnt, i) = str2double(datTokens{1}{i});
+    cntPntFra = 0;
+    while (1)
+        % get one line
+        datStr = fgetl(fpt);
+
+        % terminate
+        if datStr == -1
+            break;
         end
-        idxPnt = idxPnt + 1;
+        if isempty(datStr)
+            break;
+        end
+
+        % grep frame index
+        datGot = regexp(datStr, 'FrameNb:([0-9]+)', 'tokens');
+        if ~isempty(datGot)
+            idxFra = str2double(datGot{1}{1}) + 1;
+            set(handles.editCur, 'string', num2str(idxFra));
+            drawnow;
+
+            % min
+            if (idxFra < handles.idxFraMin)
+                handles.idxFraMin = idxFra;
+            end
+
+            % max
+            if (idxFra > handles.idxFraMax)
+                handles.idxFraMax = idxFra;
+            end
+        end
+
+        % grep information
+        datGot = regexp(datStr, '^\d+,([0-9.-]+),([0-9.-]+),([0-9.-]+),([0-9.-]+)', 'tokens');
+        if ~isempty(datGot)
+            cntPntFra = cntPntFra + 1;
+            for i = 1:4
+                datPntFra(cntPntFra, i) = str2double(datGot{1}{i});
+            end
+        end
+
+        % grep end
+        if strcmp(datStr(1:3), 'END')
+            break;
+        end
     end
-    
-    % break
-    if strcmp(datStr(1:3), 'END')
+
+    % terminate
+    if datStr == -1
         break;
     end
-end
-
-% filter
-%datPntLst = datPntFul(1:idxPnt-1, :);
-for i = 1:idxPnt-1
-    if datPntFul(i,1) == 1024
-        %datPntLst = datPntFul(1:i-1, :);
-        datPntLst = datPntFul(i+1:idxPnt-1, :);
+    if isempty(datStr)
         break;
     end
+
+    % filter
+    %datPntLst = datPntFra(1:cntPntFra, :);
+    cntPntFra = min(NUM_DAT_MAX, cntPntFra);
+    for i = 1:cntPntFra
+        if datPntFra(i,1) == 1024
+            %datPntLst = datPntFra(1:i-1, :);
+            datPntFra = datPntFra(i+1:cntPntFra, :);
+            cntPntFra = cntPntFra - i;
+            break;
+        end
+    end
+
+    % convert
+    datPntFra(:, IDX_ANG) = datPntFra(:, IDX_ANG) / 180 * pi;
+
+    % cluster
+    datCstFra = pdist2(datPntFra, datPntFra, @cstCustom);
+    %[idxGrpFra, idxKnlFra] = dbscan     (datCstFra, 10, 1, 'distance', 'precomputed');
+    %[idxGrpFra, idxKnlFra] = dbscanMine1(datCstFra, 10, 1);
+    [idxGrpFra, idxKnlFra] = dbscanMine2(datCstFra, 10, 1);
+
+    % save
+    handles.cntPntAll(idxFra                ) = cntPntFra;
+    handles.datPntAll(idxFra, 1:cntPntFra, :) = [datPntFra, idxGrpFra, idxKnlFra, idxGrpFra];
 end
-
-% convert
-datPntLst(:, IDX_ANG) = datPntLst(:, IDX_ANG) / 180 * pi;
-
-% cluster
-datCstLst = pdist2(datPntLst, datPntLst, @cstCustom);
-%[idxGrp, idxKnl] = dbscan     (datCstLst, 10, 1, 'distance', 'precomputed');
-%[idxGrp, idxKnl] = dbscanMine1(datCstLst, 10, 1);
-[idxGrp, idxKnl] = dbscanMine2(datCstLst, 10, 1);
-handles.cntFrame = cntFrame;
-handles.datPntLst = datPntLst;
-handles.idxGrp = idxGrp;
-handles.idxGrpOri = idxGrp;
-handles.idxKnl = idxKnl;
-
-% draw
-drawBefore(handles);
-drawAfter(handles);
-drawnow;
 
 % log
-set(handles.tableGroup, 'data', [datPntLst, idxGrp, idxGrp]);
+set(handles.textMin, 'string', num2str(handles.idxFraMin));
+set(handles.editCur, 'string', num2str(handles.idxFraMin));
+set(handles.textMax, 'string', num2str(handles.idxFraMax));
+logAftGrp(handles);
+
+% plot
+drawBfrGrp(handles);
+drawAftGrp(handles);
+
+% save
+guidata(hObject, handles);
+
+% after everthing
+set(handles.textBusy, 'string', '');
+
+
+% --- Executes on button press in pushbuttonDown.
+function pushbuttonDown_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbuttonDown (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% get data
+idxFra = get(handles.editCur, 'string');
+idxFra = str2double(idxFra);
+idxFra = min(handles.idxFraMax, idxFra + 1);
+set(handles.editCur, 'string', num2str(idxFra));
+logAftGrp(handles);
+drawBfrGrp(handles);
+drawAftGrp(handles);
 guidata(hObject, handles);
 
 
@@ -199,19 +254,15 @@ function tableGroup_CellSelectionCallback(hObject, eventdata, handles)
 % eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
 %	Indices: row and column indices of the cell(s) currently selecteds
 % handles    structure with handles and user data (see GUIDATA)
-IDX_RNG = 1;
-IDX_VEL = 2;
-IDX_ANG = 3;
-IDX_SNR = 4;
 if (~isempty(eventdata.Indices))
     idxFlt = eventdata.Indices(1);
-    if 1 <= idxFlt && idxFlt <= size(handles.datPntLst, 1)
-        drawBefore(handles);
-        drawAfter(handles);
-        axes(handles.axesInput);
-        plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'xk');
-        axes(handles.axesOutput);
-        plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'xk');
+    idxFra = get(handles.editCur, 'string');
+    idxFra = str2double(idxFra);
+    cntPnt = handles.cntPntAll(idxFra);
+    if 1 <= idxFlt && idxFlt <= cntPnt
+        drawBfrGrp(handles);
+        drawAftGrp(handles);
+        drawExtra(handles, idxFlt);
         drawnow;
     end
 end
@@ -228,70 +279,273 @@ function tableGroup_CellEditCallback(hObject, eventdata, handles)
 %	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
 %	Error: error string when failed to convert EditData to appropriate value for Data
 % handles    structure with handles and user data (see GUIDATA)
-IDX_RNG = 1;
-IDX_VEL = 2;
-IDX_ANG = 3;
-IDX_SNR = 4;
+IDX_IDM = 7;
 idxFlt = eventdata.Indices(1);
-if 1 <= idxFlt && idxFlt <= size(handles.datPntLst, 1)
-    handles.idxGrp(idxFlt) = eventdata.NewData;
-    drawBefore(handles);
-    drawAfter(handles);
-    axes(handles.axesInput);
-    plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'xk');
-    axes(handles.axesOutput);
-    plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'xk');
+idxFra = get(handles.editCur, 'string');
+idxFra = str2double(idxFra);
+cntPnt = handles.cntPntAll(idxFra);
+if 1 <= idxFlt && idxFlt <= cntPnt
+    handles.datPntAll(idxFra, idxFlt, IDX_IDM) = eventdata.NewData;
+    drawBfrGrp(handles);
+    drawAftGrp(handles);
+    drawExtra(handles, idxFlt);
     drawnow;
 end
 guidata(hObject, handles);
 
 
 %%*** MY FUNCTION ******************************************************
-function drawBefore(handles)
-axes(handles.axesInput);
+function logAftGrp(handles)
+% parameter
 IDX_RNG = 1;
 IDX_VEL = 2;
 IDX_ANG = 3;
 IDX_SNR = 4;
+IDX_IDO = 5;
+IDX_KNL = 6;
+IDX_IDM = 7;
+
+% variable
+idxFra = get(handles.editCur, 'string');
+idxFra = str2double(idxFra);
+cntPnt = handles.cntPntAll(idxFra);
+datPnt = ones(cntPnt, IDX_SNR);
+idxGrpOri = ones(cntPnt, 1);
+idxGrpMod = ones(cntPnt, 1);
+datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
+idxGrpOri(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDO);
+idxGrpMod(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDM);
+
+% log
+set(handles.tableGroup, 'data', [datPnt, idxGrpOri, idxGrpMod]);
+
+
+function drawBfrGrp(handles)
+% parameter
+IDX_RNG = 1;
+IDX_VEL = 2;
+IDX_ANG = 3;
+IDX_SNR = 4;
+IDX_IDO = 5;
+IDX_KNL = 6;
+IDX_IDM = 7;
+
+% variables
+idxFra = get(handles.editCur, 'string');
+idxFra = str2double(idxFra);
+cntPnt = handles.cntPntAll(idxFra);
+datPnt = ones(cntPnt, IDX_SNR);
+datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
+
+% plot
+axes(handles.axesInput);
 cla;
 hold on;
 % +
-idxFlt = handles.datPntLst(:,IDX_VEL) == 0;
-plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'og');
+idxFlt = datPnt(:,IDX_VEL) == 0;
+plot(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)), datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), 'og');
 % 0
-idxFlt = handles.datPntLst(:,IDX_VEL) > 0;
-plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'ob');
+idxFlt = datPnt(:,IDX_VEL) > 0;
+plot(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)), datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), 'ob');
 % -
-idxFlt = handles.datPntLst(:,IDX_VEL) < 0;
-plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'or');
+idxFlt = datPnt(:,IDX_VEL) < 0;
+plot(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)), datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), 'or');
 % set figure
 %title('before cluster (color is used to indicate speed)');
-title(['before cluster (', num2str(handles.cntFrame), ')']);
+title(['before cluster (', num2str(idxFra), ')']);
 %axis equal;
 axis([-20, 20, 0, 100]);
 grid on;
 
-function drawAfter(handles)
+
+function drawAftGrp(handles)
+% parameter
 IDX_RNG = 1;
 IDX_VEL = 2;
 IDX_ANG = 3;
 IDX_SNR = 4;
+IDX_IDO = 5;
+IDX_KNL = 6;
+IDX_IDM = 7;
+
+% variables
+idxFra = get(handles.editCur, 'string');
+idxFra = str2double(idxFra);
+cntPnt = handles.cntPntAll(idxFra);
+datPnt = ones(cntPnt, IDX_SNR);
+idxGrp = ones(cntPnt, 1);
+idxKnl = ones(cntPnt, 1);
+datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
+%idxGrp(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDO);
+idxKnl(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_KNL);
+idxGrp(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDM);
+
+% plot
 axes(handles.axesOutput);
 cla;
 hold on;
-% group
-for i = 1:max(handles.idxGrp)
-    idxFlt = handles.idxGrp == i;
-    plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'o');
+for i = 1:max(idxGrp)
+    idxFlt = idxGrp == i;
+    plot(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)), datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), 'o');
     idxFlt = find(idxFlt, 1);
-    text(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)) + 1, handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), num2str(handles.idxGrp(idxFlt)));
+    text(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)) + 1, datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), num2str(idxGrp(idxFlt)));
 end
-idxFlt = handles.idxGrp == -1 & handles.idxKnl == 0;
-plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 's');
+idxFlt = idxGrp == -1 & idxKnl == 0;
+plot(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)), datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), 's');
 idxFlt = find(idxFlt, 1);
-text(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)) + 1, handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), num2str(handles.idxGrp(idxFlt)));
+text(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)) + 1, datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), num2str(idxGrp(idxFlt)));
 % set figure
-title(['after cluster (', num2str(handles.cntFrame), ')']);
+title(['after cluster (', num2str(idxFra), ')']);
 %axis equal;
 axis([-20, 20, 0, 100]);
 grid on;
+
+
+function drawExtra(handles, idxFlt)
+% parameter
+IDX_RNG = 1;
+IDX_VEL = 2;
+IDX_ANG = 3;
+IDX_SNR = 4;
+IDX_IDO = 5;
+IDX_KNL = 6;
+IDX_IDM = 7;
+
+% variables
+idxFra = get(handles.editCur, 'string');
+idxFra = str2double(idxFra);
+cntPnt = handles.cntPntAll(idxFra);
+datPnt = ones(cntPnt, IDX_SNR);
+datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
+
+% plot
+axes(handles.axesInput);
+hold on;
+plot(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)), datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), 'xk', 'markersiz', 10);
+axes(handles.axesOutput);
+hold on;
+plot(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)), datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), 'xk', 'markersiz', 10);
+
+
+% --- Executes on button press in pushbuttonUp.
+function pushbuttonUp_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbuttonUp (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+idxFra = get(handles.editCur, 'string');
+idxFra = str2double(idxFra);
+idxFra = min(handles.idxFraMin, idxFra - 1);
+set(handles.editCur, 'string', num2str(idxFra));
+logAftGrp(handles);
+drawBfrGrp(handles);
+drawAftGrp(handles);
+guidata(hObject, handles);
+
+
+% --- Executes on button press in pushbuttondump.
+function pushbuttondump_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbuttondump (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% before everything
+set(handles.textBusy, 'string', 'busy');
+
+% open file
+fileName = get(handles.editFileName, 'string');
+fpt = fopen([handles.filePath, fileName, '.group.log'], 'w');
+fprintf(fpt, '    %-7s %-7s %-7s %-7s %-2s %-2s\n', 'RNG', 'VEL', 'ANG', 'SNR', 'ID', 'ID (modified)');
+
+% parameter
+IDX_RNG = 1;
+IDX_VEL = 2;
+IDX_ANG = 3;
+IDX_SNR = 4;
+IDX_IDO = 5;
+IDX_KNL = 6;
+IDX_IDM = 7;
+
+% main loop
+for idxFra = handles.idxFraMin:handles.idxFraMax
+    % log
+    set(handles.editCur, 'string', num2str(idxFra));
+    drawnow;
+
+    % get data
+    cntPnt = handles.cntPntAll(idxFra);
+    datPnt = ones(cntPnt, IDX_SNR);
+    idxGrpOri = ones(cntPnt, 1);
+    idxGrpMod = ones(cntPnt, 1);
+    datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
+    idxGrpOri(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDO);
+    idxGrpMod(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDM);
+
+    % dump
+    fprintf(fpt, 'BGN OF FRAME %d\n', idxFra);
+    fprintf(fpt, '    %-7.2f %-7.2f %-7.2f %-7.2f %02d %02d\n', [datPnt, idxGrpOri, idxGrpMod]');
+    fprintf(fpt, 'END OF FRAME %d\n', idxFra);
+end
+
+% save
+guidata(hObject, handles);
+
+% after everything
+set(handles.textBusy, 'string', '');
+
+
+% --- Executes during object creation, after setting all properties.
+function textMin_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to textMin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object deletion, before destroying properties.
+function textMin_DeleteFcn(hObject, eventdata, handles)
+% hObject    handle to textMin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over textMin.
+function textMin_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to textMin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes during object creation, after setting all properties.
+function textMax_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to textMax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object deletion, before destroying properties.
+function textMax_DeleteFcn(hObject, eventdata, handles)
+% hObject    handle to textMax (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+
+function editCur_Callback(hObject, eventdata, handles)
+% hObject    handle to editCur (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of editCur as text
+%        str2double(get(hObject,'String')) returns contents of editCur as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function editCur_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to editCur (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
