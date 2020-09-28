@@ -22,7 +22,7 @@ function varargout = dbscanMine(varargin)
 
 % Edit the above text to modify the response to help dbscanMine
 
-% Last Modified by GUIDE v2.5 28-Sep-2020 19:34:11
+% Last Modified by GUIDE v2.5 28-Sep-2020 21:38:26
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -179,12 +179,20 @@ while (1)
     % filter
     %datPntLst = datPntFra(1:cntPntFra, :);
     cntPntFra = min(NUM_DAT_MAX, cntPntFra);
-    for i = 1:cntPntFra
-        if datPntFra(i,1) == 1024
-            %datPntLst = datPntFra(1:i-1, :);
-            datPntFra = datPntFra(i+1:cntPntFra, :);
-            cntPntFra = cntPntFra - i;
-            break;
+    if get(handles.radiobuttonTx1, 'value') && get(handles.radiobuttonTx2, 'value')
+        datPntFra = datPntFra(1:cntPntFra, :);
+    else
+        for i = 1:cntPntFra
+            if datPntFra(i,1) == 1024
+                if get(handles.radiobuttonTx1, 'value')
+                    datPntFra = datPntFra(1:i-1, :);
+                    cntPntFra = i - 1;
+                else
+                    datPntFra = datPntFra(i+1:cntPntFra, :);
+                    cntPntFra = cntPntFra - i;
+                end
+                break;
+            end
         end
     end
 
@@ -558,3 +566,21 @@ function editCur_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in radiobuttonTx1.
+function radiobuttonTx1_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobuttonTx1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobuttonTx1
+
+
+% --- Executes on button press in radiobuttonTx2.
+function radiobuttonTx2_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobuttonTx2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobuttonTx2
