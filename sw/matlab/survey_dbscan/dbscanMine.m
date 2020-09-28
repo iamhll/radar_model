@@ -324,6 +324,9 @@ datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
 idxGrpOri(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDO);
 idxGrpMod(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDM);
 
+% convert
+datPnt(:, IDX_ANG) = datPnt(:, IDX_ANG) / pi * 180;
+
 % log
 set(handles.tableGroup, 'data', [datPnt, idxGrpOri, idxGrpMod]);
 
@@ -486,6 +489,9 @@ for idxFra = handles.idxFraMin:handles.idxFraMax
     datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
     idxGrpOri(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDO);
     idxGrpMod(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDM);
+
+    % convert
+    datPnt(:, IDX_ANG) = datPnt(:, IDX_ANG) / pi * 180;
 
     % dump
     fprintf(fpt, 'BGN OF FRAME %d\n', idxFra);
