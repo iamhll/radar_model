@@ -95,7 +95,9 @@ function pushbuttonOpen_Callback(hObject, eventdata, handles)
 set(handles.editFileName, 'string', fileName)
 handles.fptInput = fopen([filePath, fileName], 'r');
 handles.fptOutput = fopen([filePath, fileName, '.group.log'], 'w');
+fprintf(handles.fptOutput, '    %-7s %-7s %-7s %-7s %-2s %-2s\n', 'RNG', 'VEL', 'ANG', 'SNR', 'ID', 'ID (modified)');
 handles.datPntLst = [];
+handles.cntFrame = [];
 guidata(hObject, handles);
 
 
@@ -112,13 +114,10 @@ IDX_ANG = 3;
 IDX_SNR = 4;
 
 % save
-if isempty(handles.datPntLst)
-    handles.numFrame = 1;
-else
-    fprintf(handles.fptOutput, 'BGN OF FRAME %d\n', handles.numFrame);
-    fprintf(handles.fptOutput, '%-7.2f %-7.2f %-7.2f %-7.2f %02d\n', [handles.datPntLst, handles.idxGrp]');
-    fprintf(handles.fptOutput, 'END OF FRAME %d\n', handles.numFrame);
-    handles.numFrame = handles.numFrame + 1;
+if ~isempty(handles.cntFrame) && ~isempty(handles.datPntLst)
+    fprintf(handles.fptOutput, 'BGN OF FRAME %d\n', handles.cntFrame);
+    fprintf(handles.fptOutput, '    %-7.2f %-7.2f %-7.2f %-7.2f %02d %02d\n', [handles.datPntLst, handles.idxGrpOri, handles.idxGrp]');
+    fprintf(handles.fptOutput, 'END OF FRAME %d\n', handles.cntFrame);
 end
 
 % init
@@ -129,6 +128,10 @@ idxPnt = 1;
 while (1)
     % grep
     datStr = fgetl(handles.fptInput);
+    datTokens = regexp(datStr, 'FrameNb:([0-9]+)', 'tokens');
+    if ~isempty(datTokens)
+        cntFrame = str2double(datTokens{1}{1});
+    end
     datTokens = regexp(datStr, '^\d+,([0-9.-]+),([0-9.-]+),([0-9.-]+),([0-9.-]+)', 'tokens');
     if ~isempty(datTokens)
         for i = 1:4
@@ -161,8 +164,10 @@ datCstLst = pdist2(datPntLst, datPntLst, @cstCustom);
 %[idxGrp, idxKnl] = dbscan     (datCstLst, 10, 1, 'distance', 'precomputed');
 %[idxGrp, idxKnl] = dbscanMine1(datCstLst, 10, 1);
 [idxGrp, idxKnl] = dbscanMine2(datCstLst, 10, 1);
+handles.cntFrame = cntFrame;
 handles.datPntLst = datPntLst;
 handles.idxGrp = idxGrp;
+handles.idxGrpOri = idxGrp;
 handles.idxKnl = idxKnl;
 
 % draw
@@ -171,7 +176,7 @@ drawAfter(handles);
 drawnow;
 
 % log
-set(handles.tableGroup, 'data', [datPntLst, idxGrp]);
+set(handles.tableGroup, 'data', [datPntLst, idxGrp, idxGrp]);
 guidata(hObject, handles);
 
 
@@ -198,15 +203,17 @@ IDX_RNG = 1;
 IDX_VEL = 2;
 IDX_ANG = 3;
 IDX_SNR = 4;
-idxFlt = eventdata.Indices(1);
-if 1 <= idxFlt && idxFlt <= size(handles.datPntLst, 1)
-    drawBefore(handles);
-    drawAfter(handles);
-    axes(handles.axesInput);
-    plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'xk');
-    axes(handles.axesOutput);
-    plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'xk');
-    drawnow;
+if (~isempty(eventdata.Indices))
+    idxFlt = eventdata.Indices(1);
+    if 1 <= idxFlt && idxFlt <= size(handles.datPntLst, 1)
+        drawBefore(handles);
+        drawAfter(handles);
+        axes(handles.axesInput);
+        plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'xk');
+        axes(handles.axesOutput);
+        plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'xk');
+        drawnow;
+    end
 end
 guidata(hObject, handles);
 
@@ -259,7 +266,7 @@ idxFlt = handles.datPntLst(:,IDX_VEL) < 0;
 plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)), handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), 'or');
 % set figure
 %title('before cluster (color is used to indicate speed)');
-title('before cluster');
+title(['before cluster (', num2str(handles.cntFrame), ')']);
 %axis equal;
 axis([-20, 20, 0, 100]);
 grid on;
@@ -284,7 +291,7 @@ plot(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG))
 idxFlt = find(idxFlt, 1);
 text(handles.datPntLst(idxFlt,IDX_RNG) .* sin(handles.datPntLst(idxFlt,IDX_ANG)) + 1, handles.datPntLst(idxFlt,IDX_RNG) .* cos(handles.datPntLst(idxFlt,IDX_ANG)), num2str(handles.idxGrp(idxFlt)));
 % set figure
-title('after cluster');
+title(['after cluster (', num2str(handles.cntFrame), ')']);
 %axis equal;
 axis([-20, 20, 0, 100]);
 grid on;
