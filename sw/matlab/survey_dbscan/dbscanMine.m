@@ -150,7 +150,7 @@ while (1)
             datGot = regexp(datStr, 'FrameNb:([0-9]+)', 'tokens');
         end
         if ~isempty(datGot)
-            idxFra = str2double(datGot{1}{1}) + 1;
+            idxFra = str2double(datGot{1}{1});
             set(handles.editCur, 'string', num2str(idxFra));
             drawnow;
 
@@ -233,11 +233,11 @@ while (1)
     end
 
     % save
-    handles.cntPntAll(idxFra                ) = cntPntFra;
+        handles.cntPntAll(idxFra + 1                ) = cntPntFra;
     if get(handles.radiobuttonPlayBack, 'value')
-        handles.datPntAll(idxFra, 1:cntPntFra, :) = datPntFra;
+        handles.datPntAll(idxFra + 1, 1:cntPntFra, :) = datPntFra;
     else
-        handles.datPntAll(idxFra, 1:cntPntFra, :) = [datPntFra, idxGrpFra, idxKnlFra, idxGrpFra];
+        handles.datPntAll(idxFra + 1, 1:cntPntFra, :) = [datPntFra, idxGrpFra, idxKnlFra, idxGrpFra];
     end
 end
 
@@ -307,7 +307,7 @@ if (~isempty(eventdata.Indices))
     idxFlt = eventdata.Indices(1);
     idxFra = get(handles.editCur, 'string');
     idxFra = str2double(idxFra);
-    cntPnt = handles.cntPntAll(idxFra);
+    cntPnt = handles.cntPntAll(idxFra + 1);
     if 1 <= idxFlt && idxFlt <= cntPnt
         if get(handles.radiobuttonPlayBack, 'value')
             drawAftGrp(handles, 0);
@@ -337,9 +337,9 @@ IDX_IDM = 7;
 idxFlt = eventdata.Indices(1);
 idxFra = get(handles.editCur, 'string');
 idxFra = str2double(idxFra);
-cntPnt = handles.cntPntAll(idxFra);
+cntPnt = handles.cntPntAll(idxFra + 1);
 if 1 <= idxFlt && idxFlt <= cntPnt
-    handles.datPntAll(idxFra, idxFlt, IDX_IDM) = eventdata.NewData;
+    handles.datPntAll(idxFra + 1, idxFlt, IDX_IDM) = eventdata.NewData;
     if get(handles.radiobuttonPlayBack, 'value')
         drawAftGrp(handles, 0);
         drawAftGrp(handles, 1);
@@ -365,15 +365,15 @@ IDX_KNL = 6;
 IDX_IDM = 7;
 
 % variable
-idxFra = get(handles.editCur, 'string');
-idxFra = str2double(idxFra);
-cntPnt = handles.cntPntAll(idxFra);
-datPnt = ones(cntPnt, IDX_SNR);
-idxGrpOri = ones(cntPnt, 1);
-idxGrpMod = ones(cntPnt, 1);
-datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
-idxGrpOri(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDO);
-idxGrpMod(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDM);
+idxFra         = get(handles.editCur, 'string');
+idxFra         = str2double(idxFra);
+cntPnt         = handles.cntPntAll(idxFra + 1);
+datPnt         = ones(cntPnt, IDX_SNR);
+idxGrpOri      = ones(cntPnt, 1);
+idxGrpMod      = ones(cntPnt, 1);
+datPnt   (:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, 1:IDX_SNR);
+idxGrpOri(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDO);
+idxGrpMod(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDM);
 
 % convert
 datPnt(:, IDX_ANG) = datPnt(:, IDX_ANG) / pi * 180;
@@ -393,11 +393,11 @@ IDX_KNL = 6;
 IDX_IDM = 7;
 
 % variables
-idxFra = get(handles.editCur, 'string');
-idxFra = str2double(idxFra);
-cntPnt = handles.cntPntAll(idxFra);
-datPnt = ones(cntPnt, IDX_SNR);
-datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
+idxFra      = get(handles.editCur, 'string');
+idxFra      = str2double(idxFra);
+cntPnt      = handles.cntPntAll(idxFra + 1);
+datPnt      = ones(cntPnt, IDX_SNR);
+datPnt(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, 1:IDX_SNR);
 
 % plot
 axes(handles.axesInput);
@@ -431,19 +431,19 @@ IDX_KNL = 6;
 IDX_IDM = 7;
 
 % variables
-idxFra = get(handles.editCur, 'string');
-idxFra = str2double(idxFra);
-cntPnt = handles.cntPntAll(idxFra);
-datPnt = ones(cntPnt, IDX_SNR);
-idxGrp = ones(cntPnt, 1);
-idxKnl = ones(cntPnt, 1);
-datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
+    idxFra      = get(handles.editCur, 'string');
+    idxFra      = str2double(idxFra);
+    cntPnt      = handles.cntPntAll(idxFra + 1);
+    datPnt      = ones(cntPnt, IDX_SNR);
+    idxGrp      = ones(cntPnt, 1);
+    idxKnl      = ones(cntPnt, 1);
+    datPnt(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, 1:IDX_SNR);
 if flgMod
-    idxGrp(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDM);
+    idxGrp(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDM);
 else
-    idxGrp(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDO);
+    idxGrp(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDO);
 end
-idxKnl(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_KNL);
+idxKnl(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_KNL);
 
 % plot
 if flgMod
@@ -481,11 +481,11 @@ IDX_KNL = 6;
 IDX_IDM = 7;
 
 % variables
-idxFra = get(handles.editCur, 'string');
-idxFra = str2double(idxFra);
-cntPnt = handles.cntPntAll(idxFra);
-datPnt = ones(cntPnt, IDX_SNR);
-datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
+idxFra      = get(handles.editCur, 'string');
+idxFra      = str2double(idxFra);
+cntPnt      = handles.cntPntAll(idxFra + 1);
+datPnt      = ones(cntPnt, IDX_SNR);
+datPnt(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, 1:IDX_SNR);
 
 % plot
 axes(handles.axesInput);
@@ -545,13 +545,13 @@ for idxFra = handles.idxFraMin:handles.idxFraMax
     drawnow;
 
     % get data
-    cntPnt = handles.cntPntAll(idxFra);
-    datPnt = ones(cntPnt, IDX_SNR);
-    idxGrpOri = ones(cntPnt, 1);
-    idxGrpMod = ones(cntPnt, 1);
-    datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
-    idxGrpOri(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDO);
-    idxGrpMod(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDM);
+    cntPnt         = handles.cntPntAll(idxFra + 1);
+    datPnt         = ones(cntPnt, IDX_SNR);
+    idxGrpOri      = ones(cntPnt, 1);
+    idxGrpMod      = ones(cntPnt, 1);
+    datPnt   (:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, 1:IDX_SNR);
+    idxGrpOri(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDO);
+    idxGrpMod(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDM);
 
     % convert
     datPnt(:, IDX_ANG) = datPnt(:, IDX_ANG) / pi * 180;
