@@ -454,7 +454,9 @@ end
 cla;
 hold on;
 for i = 1:max(idxGrp)
-    idxFlt = idxGrp == i;
+    datPntPosX = datPnt(:,IDX_RNG) .* sin(datPnt(:,IDX_ANG));
+    datPntPosY = datPnt(:,IDX_RNG) .* cos(datPnt(:,IDX_ANG));
+    idxFlt = idxGrp == i & -20 <= datPntPosX & datPntPosX <= 20 & 0 <= datPntPosY & datPntPosY <= 100;
     plot(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)), datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), 'o');
     idxFlt = find(idxFlt, 1);
     text(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)) + 1, datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), num2str(idxGrp(idxFlt)));
