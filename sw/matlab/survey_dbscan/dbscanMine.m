@@ -22,7 +22,7 @@ function varargout = dbscanMine(varargin)
 
 % Edit the above text to modify the response to help dbscanMine
 
-% Last Modified by GUIDE v2.5 28-Sep-2020 21:38:26
+% Last Modified by GUIDE v2.5 11-Oct-2020 14:15:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -95,7 +95,11 @@ function pushbuttonload_Callback(hObject, eventdata, handles)
 set(handles.textBusy, 'string', 'busy');
 
 % open file
-[fileName, filePath] = uigetfile({'*.csv'});
+if get(handles.radiobuttonPlayBack, 'value')
+    [fileName, filePath] = uigetfile({'*.log'});
+else
+    [fileName, filePath] = uigetfile({'*.csv'});
+end
 handles.filePath = filePath;
 set(handles.editFileName, 'string', fileName)
 fpt = fopen([filePath, fileName], 'r');
@@ -114,7 +118,11 @@ NUM_FRA_AVE = 1024;
 % variables
         cntPntFra = ones(             1          , 1      );
 handles.cntPntAll = ones(NUM_FRA_AVE, 1          , 1      );
+if get(handles.radiobuttonPlayBack, 'value')
+        datPntFra = ones(             NUM_DAT_MAX, IDX_IDM);
+else
         datPntFra = ones(             NUM_DAT_MAX, IDX_SNR);
+end
 handles.datPntAll = ones(NUM_FRA_AVE, NUM_DAT_MAX, IDX_IDM);
 handles.idxFraMin = inf;
         idxFra    = [];
@@ -136,7 +144,11 @@ while (1)
         end
 
         % grep frame index
-        datGot = regexp(datStr, 'FrameNb:([0-9]+)', 'tokens');
+        if get(handles.radiobuttonPlayBack, 'value')
+            datGot = regexp(datStr, 'BGN OF FRAME ([0-9]+)', 'tokens');
+        else
+            datGot = regexp(datStr, 'FrameNb:([0-9]+)', 'tokens');
+        end
         if ~isempty(datGot)
             idxFra = str2double(datGot{1}{1}) + 1;
             set(handles.editCur, 'string', num2str(idxFra));
@@ -154,11 +166,20 @@ while (1)
         end
 
         % grep information
-        datGot = regexp(datStr, '^\d+,([0-9.-]+),([0-9.-]+),([0-9.-]+),([0-9.-]+)', 'tokens');
+        if get(handles.radiobuttonPlayBack, 'value')
+            datGot = regexp(datStr, '^\s+([0-9.-]+)\s+([0-9.-]+)\s+([0-9.-]+)\s+([0-9.-]+)\s+([0-9.-]+)\s+([0-9.-]+)', 'tokens');
+        else
+            datGot = regexp(datStr, '^\d+,([0-9.-]+),([0-9.-]+),([0-9.-]+),([0-9.-]+)', 'tokens');
+        end
         if ~isempty(datGot)
             cntPntFra = cntPntFra + 1;
-            for i = 1:4
+            for i = 1:IDX_SNR
                 datPntFra(cntPntFra, i) = str2double(datGot{1}{i});
+            end
+            if get(handles.radiobuttonPlayBack, 'value')
+                datPntFra(cntPntFra, IDX_IDO) = str2double(datGot{1}{5});
+                datPntFra(cntPntFra, IDX_KNL) = 1;
+                datPntFra(cntPntFra, IDX_IDM) = str2double(datGot{1}{6});
             end
         end
 
@@ -177,21 +198,25 @@ while (1)
     end
 
     % filter
-    %datPntLst = datPntFra(1:cntPntFra, :);
-    cntPntFra = min(NUM_DAT_MAX, cntPntFra);
-    if get(handles.radiobuttonTx1, 'value') && get(handles.radiobuttonTx2, 'value')
+    if get(handles.radiobuttonPlayBack, 'value')
+        cntPntFra = min(NUM_DAT_MAX, cntPntFra);
         datPntFra = datPntFra(1:cntPntFra, :);
     else
-        for i = 1:cntPntFra
-            if datPntFra(i,1) == 1024
-                if get(handles.radiobuttonTx1, 'value')
-                    datPntFra = datPntFra(1:i-1, :);
-                    cntPntFra = i - 1;
-                else
-                    datPntFra = datPntFra(i+1:cntPntFra, :);
-                    cntPntFra = cntPntFra - i;
+        cntPntFra = min(NUM_DAT_MAX, cntPntFra);
+        if get(handles.radiobuttonTx1, 'value') && get(handles.radiobuttonTx2, 'value')
+            datPntFra = datPntFra(1:cntPntFra, :);
+        else
+            for i = 1:cntPntFra
+                if datPntFra(i,1) == 1024
+                    if get(handles.radiobuttonTx1, 'value')
+                        datPntFra = datPntFra(1:i-1, :);
+                        cntPntFra = i - 1;
+                    else
+                        datPntFra = datPntFra(i+1:cntPntFra, :);
+                        cntPntFra = cntPntFra - i;
+                    end
+                    break;
                 end
-                break;
             end
         end
     end
@@ -200,14 +225,20 @@ while (1)
     datPntFra(:, IDX_ANG) = datPntFra(:, IDX_ANG) / 180 * pi;
 
     % cluster
-    datCstFra = pdist2(datPntFra, datPntFra, @cstCustom);
-    %[idxGrpFra, idxKnlFra] = dbscan     (datCstFra, 10, 1, 'distance', 'precomputed');
-    %[idxGrpFra, idxKnlFra] = dbscanMine1(datCstFra, 10, 1);
-    [idxGrpFra, idxKnlFra] = dbscanMine2(datCstFra, 10, 1);
+    if ~ get(handles.radiobuttonPlayBack, 'value')
+        datCstFra = pdist2(datPntFra, datPntFra, @cstCustom);
+        %[idxGrpFra, idxKnlFra] = dbscan     (datCstFra, 10, 1, 'distance', 'precomputed');
+        %[idxGrpFra, idxKnlFra] = dbscanMine1(datCstFra, 10, 1);
+        [idxGrpFra, idxKnlFra] = dbscanMine2(datCstFra, 10, 1);
+    end
 
     % save
     handles.cntPntAll(idxFra                ) = cntPntFra;
-    handles.datPntAll(idxFra, 1:cntPntFra, :) = [datPntFra, idxGrpFra, idxKnlFra, idxGrpFra];
+    if get(handles.radiobuttonPlayBack, 'value')
+        handles.datPntAll(idxFra, 1:cntPntFra, :) = datPntFra;
+    else
+        handles.datPntAll(idxFra, 1:cntPntFra, :) = [datPntFra, idxGrpFra, idxKnlFra, idxGrpFra];
+    end
 end
 
 % log
@@ -217,8 +248,13 @@ set(handles.textMax, 'string', num2str(handles.idxFraMax));
 logAftGrp(handles);
 
 % plot
-drawBfrGrp(handles);
-drawAftGrp(handles);
+if get(handles.radiobuttonPlayBack, 'value')
+    drawAftGrp(handles, 0);
+    drawAftGrp(handles, 1);
+else
+    drawBfrGrp(handles);
+    drawAftGrp(handles, 1);
+end
 
 % save
 guidata(hObject, handles);
@@ -238,8 +274,13 @@ idxFra = str2double(idxFra);
 idxFra = min(handles.idxFraMax, max(handles.idxFraMin, idxFra + 1));
 set(handles.editCur, 'string', num2str(idxFra));
 logAftGrp(handles);
-drawBfrGrp(handles);
-drawAftGrp(handles);
+if get(handles.radiobuttonPlayBack, 'value')
+    drawAftGrp(handles, 0);
+    drawAftGrp(handles, 1);
+else
+    drawBfrGrp(handles);
+    drawAftGrp(handles, 1);
+end
 guidata(hObject, handles);
 
 
@@ -268,8 +309,13 @@ if (~isempty(eventdata.Indices))
     idxFra = str2double(idxFra);
     cntPnt = handles.cntPntAll(idxFra);
     if 1 <= idxFlt && idxFlt <= cntPnt
-        drawBfrGrp(handles);
-        drawAftGrp(handles);
+        if get(handles.radiobuttonPlayBack, 'value')
+            drawAftGrp(handles, 0);
+            drawAftGrp(handles, 1);
+        else
+            drawBfrGrp(handles);
+            drawAftGrp(handles, 1);
+        end
         drawExtra(handles, idxFlt);
         drawnow;
     end
@@ -294,8 +340,13 @@ idxFra = str2double(idxFra);
 cntPnt = handles.cntPntAll(idxFra);
 if 1 <= idxFlt && idxFlt <= cntPnt
     handles.datPntAll(idxFra, idxFlt, IDX_IDM) = eventdata.NewData;
-    drawBfrGrp(handles);
-    drawAftGrp(handles);
+    if get(handles.radiobuttonPlayBack, 'value')
+        drawAftGrp(handles, 0);
+        drawAftGrp(handles, 1);
+    else
+        drawBfrGrp(handles);
+        drawAftGrp(handles, 1);
+    end
     drawExtra(handles, idxFlt);
     drawnow;
 end
@@ -369,7 +420,7 @@ axis([-20, 20, 0, 100]);
 grid on;
 
 
-function drawAftGrp(handles)
+function drawAftGrp(handles, flgMod)
 % parameter
 IDX_RNG = 1;
 IDX_VEL = 2;
@@ -387,12 +438,19 @@ datPnt = ones(cntPnt, IDX_SNR);
 idxGrp = ones(cntPnt, 1);
 idxKnl = ones(cntPnt, 1);
 datPnt(:,:) = handles.datPntAll(idxFra, 1:cntPnt, 1:IDX_SNR);
-%idxGrp(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDO);
+if flgMod
+    idxGrp(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDM);
+else
+    idxGrp(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDO);
+end
 idxKnl(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_KNL);
-idxGrp(:,:) = handles.datPntAll(idxFra, 1:cntPnt, IDX_IDM);
 
 % plot
-axes(handles.axesOutput);
+if flgMod
+    axes(handles.axesOutput);
+else
+    axes(handles.axesInput);
+end
 cla;
 hold on;
 for i = 1:max(idxGrp)
@@ -448,8 +506,13 @@ idxFra = str2double(idxFra);
 idxFra = min(handles.idxFraMax, max(handles.idxFraMin, idxFra - 1));
 set(handles.editCur, 'string', num2str(idxFra));
 logAftGrp(handles);
-drawBfrGrp(handles);
-drawAftGrp(handles);
+if get(handles.radiobuttonPlayBack, 'value')
+    drawAftGrp(handles, 0);
+    drawAftGrp(handles, 1);
+else
+    drawBfrGrp(handles);
+    drawAftGrp(handles, 1);
+end
 guidata(hObject, handles);
 
 
@@ -590,3 +653,12 @@ function radiobuttonTx2_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of radiobuttonTx2
+
+
+% --- Executes on button press in radiobuttonPlayBack.
+function radiobuttonPlayBack_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobuttonPlayBack (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobuttonPlayBack
