@@ -443,7 +443,13 @@ if flgMod
 else
     idxGrp(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDO);
 end
-idxKnl(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_KNL);
+    idxKnl(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_KNL);
+
+if (sum(handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDM) ~= handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDO)))
+    set(handles.textBusy, 'string', 'diff');
+else
+    set(handles.textBusy, 'string', '');
+end
 
 % plot
 if flgMod
@@ -620,8 +626,13 @@ idxFra = str2double(idxFra);
 idxFra = min(handles.idxFraMax, max(handles.idxFraMin, idxFra));
 set(handles.editCur, 'string', num2str(idxFra));
 logAftGrp(handles)
-drawBfrGrp(handles);
-drawAftGrp(handles);
+if get(handles.radiobuttonPlayBack, 'value')
+    drawAftGrp(handles, 0);
+    drawAftGrp(handles, 1);
+else
+    drawBfrGrp(handles);
+    drawAftGrp(handles, 1);
+end
 drawnow;
 guidata(hObject, handles);
 
@@ -662,5 +673,14 @@ function radiobuttonPlayBack_Callback(hObject, eventdata, handles)
 % hObject    handle to radiobuttonPlayBack (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+if get(handles.radiobuttonPlayBack, 'value')
+    drawAftGrp(handles, 0);
+    drawAftGrp(handles, 1);
+else
+    drawBfrGrp(handles);
+    drawAftGrp(handles, 1);
+end
+drawnow;
+guidata(hObject, handles);
 
 % Hint: get(hObject,'Value') returns toggle state of radiobuttonPlayBack
