@@ -22,7 +22,7 @@ function varargout = dbscanMine(varargin)
 
 % Edit the above text to modify the response to help dbscanMine
 
-% Last Modified by GUIDE v2.5 11-Oct-2020 14:15:40
+% Last Modified by GUIDE v2.5 11-Oct-2020 15:43:11
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -281,6 +281,7 @@ else
     drawBfrGrp(handles);
     drawAftGrp(handles, 1);
 end
+drawnow;
 guidata(hObject, handles);
 
 
@@ -521,12 +522,13 @@ else
     drawBfrGrp(handles);
     drawAftGrp(handles, 1);
 end
+drawnow;
 guidata(hObject, handles);
 
 
-% --- Executes on button press in pushbuttondump.
-function pushbuttondump_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbuttondump (see GCBO)
+% --- Executes on button press in pushbuttonDump.
+function pushbuttonDump_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbuttonDump (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % before everything
@@ -673,6 +675,8 @@ function radiobuttonPlayBack_Callback(hObject, eventdata, handles)
 % hObject    handle to radiobuttonPlayBack (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobuttonPlayBack
 if get(handles.radiobuttonPlayBack, 'value')
     drawAftGrp(handles, 0);
     drawAftGrp(handles, 1);
@@ -683,4 +687,31 @@ end
 drawnow;
 guidata(hObject, handles);
 
-% Hint: get(hObject,'Value') returns toggle state of radiobuttonPlayBack
+
+% --- Executes on button press in togglebuttonRun.
+function togglebuttonRun_Callback(hObject, eventdata, handles)
+% hObject    handle to togglebuttonRun (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of togglebuttonRun
+while 1
+    idxFra = get(handles.editCur, 'string');
+    idxFra = str2double(idxFra);
+    idxFra = min(handles.idxFraMax, max(handles.idxFraMin, idxFra + 1));
+    set(handles.editCur, 'string', num2str(idxFra));
+    logAftGrp(handles);
+    if get(handles.radiobuttonPlayBack, 'value')
+        drawAftGrp(handles, 0);
+        drawAftGrp(handles, 1);
+    else
+        drawBfrGrp(handles);
+        drawAftGrp(handles, 1);
+    end
+    drawnow;
+    if idxFra == handles.idxFraMax || get(handles.togglebuttonRun, 'value') == 0 || strcmp(get(handles.textBusy, 'string'), 'diff')
+        set(handles.togglebuttonRun, 'value', 0);
+        break;
+    end
+end
+guidata(hObject, handles);
