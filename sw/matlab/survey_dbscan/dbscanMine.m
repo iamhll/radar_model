@@ -36,11 +36,11 @@ function editCur_Callback(hObject, eventdata, handles)
     set(handles.editCur, 'string', num2str(idxFra));
     logAftGrp(handles)
     if get(handles.radiobuttonPlayBack, 'value')
-        drawAftGrp(handles, 0);
-        drawAftGrp(handles, 1);
+        handles = drawAftGrp(handles, 0);
+        handles = drawAftGrp(handles, 1);
     else
         drawBfrGrp(handles);
-        drawAftGrp(handles, 1);
+        handles = drawAftGrp(handles, 1);
     end
     drawnow;
     guidata(hObject, handles);
@@ -64,6 +64,43 @@ function editOutput_CreateFcn(hObject, eventdata, handles)
     end
 % end of editOutput_CreateFcn
 
+
+function editBoundaryRng_Callback(hObject, eventdata, handles)
+% end of editBoundaryRng_Callback
+
+function editBoundaryRng_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+% end of editBoundaryRng_CreateFcn
+
+function editBoundaryVelUp_Callback(hObject, eventdata, handles)
+% end of editBoundaryVelUp_Callback
+
+function editBoundaryVelUp_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+% end of editBoundaryVelUp_CreateFcn
+
+function editBoundaryVelDn_Callback(hObject, eventdata, handles)
+% end of editBoundaryVelDn_Callback
+
+function editBoundaryVelDn_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+% end of editBoundaryVelDn_CreateFcn
+
+function editBoundaryAng_Callback(hObject, eventdata, handles)
+% end of editBoundaryAng_Callback
+
+function editBoundaryAng_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+% end of editBoundaryAng_CreateFcn
+
 function popupmenuAlgo_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
@@ -71,8 +108,16 @@ function popupmenuAlgo_CreateFcn(hObject, eventdata, handles)
 % end of popupmenu1_CreateFcn
 
 function popupmenuAlgo_Callback(hObject, eventdata, handles)
-    % Hints: contents = cellstr(get(hObject,'String')) returns popupmenuAlgo contents as cell array
-    %        contents{get(hObject,'Value')} returns selected item from popupmenuAlgo
+    if get(handles.radiobuttonPlayBack, 'value')
+        handles = drawAftGrp(handles, 0);
+        handles = drawAftGrp(handles, 1);
+    else
+        drawBfrGrp(handles);
+        handles = drawAftGrp(handles, 1);
+    end
+    logAftGrp(handles);
+    drawnow;
+    guidata(hObject, handles);
 % end of popupmenu1_Callback
 
 function pushbuttonload_Callback(hObject, eventdata, handles)
@@ -214,10 +259,10 @@ function pushbuttonload_Callback(hObject, eventdata, handles)
         datPntFra(:, IDX_ANG) = datPntFra(:, IDX_ANG) / 180 * pi;
 
         % cluster
-        strAlgAll = cellstr(get(handles.popupmenuAlgo,'String'));
-        idxAlg    =         get(handles.popupmenuAlgo,'Value' ) ;
-        strAlg    = strAlgAll{idxAlg};
         if ~ get(handles.radiobuttonPlayBack, 'value')
+            strAlgAll = cellstr(get(handles.popupmenuAlgo,'String'));
+            idxAlg    =         get(handles.popupmenuAlgo,'Value' ) ;
+            strAlg    = strAlgAll{idxAlg};            
             if strcmp(strAlg, 'dbscan')
                 datCstFra = pdist2(datPntFra, datPntFra, @cstCustom);
                 %[idxGrpFra, idxKnlFra] = dbscan     (datCstFra, 10, 1, 'distance', 'precomputed');
@@ -228,6 +273,8 @@ function pushbuttonload_Callback(hObject, eventdata, handles)
                 idxGrpFra = boxCut(datPntFra);
                 idxKnlFra = ones(cntPntFra, 1);
             end
+            %idxGrpFra = ones(cntPntFra, 1);
+            %idxKnlFra = ones(cntPntFra, 1);
         end
 
         % save
@@ -239,26 +286,26 @@ function pushbuttonload_Callback(hObject, eventdata, handles)
         end
     end
 
+    % after everthing
+    set(handles.textBusy, 'string', '');
+
+    % plot
+    if get(handles.radiobuttonPlayBack, 'value')
+        handles = drawAftGrp(handles, 0);
+        handles = drawAftGrp(handles, 1);
+    else
+        drawBfrGrp(handles);
+        handles = drawAftGrp(handles, 1);
+    end
+
     % log
     set(handles.textMin, 'string', num2str(handles.idxFraMin));
     set(handles.editCur, 'string', num2str(handles.idxFraMin));
     set(handles.textMax, 'string', num2str(handles.idxFraMax));
     logAftGrp(handles);
 
-    % plot
-    if get(handles.radiobuttonPlayBack, 'value')
-        drawAftGrp(handles, 0);
-        drawAftGrp(handles, 1);
-    else
-        drawBfrGrp(handles);
-        drawAftGrp(handles, 1);
-    end
-
     % save
     guidata(hObject, handles);
-
-    % after everthing
-    set(handles.textBusy, 'string', '');
 % end of pushbuttonload_Callback
 
 function pushbuttonDump_Callback(hObject, eventdata, handles)
@@ -292,9 +339,23 @@ function pushbuttonDump_Callback(hObject, eventdata, handles)
         datPnt         = ones(cntPnt, IDX_SNR);
         idxGrpOri      = ones(cntPnt, 1);
         idxGrpMod      = ones(cntPnt, 1);
-        datPnt   (:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, 1:IDX_SNR);
-        idxGrpOri(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDO);
-        idxGrpMod(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDM);
+           datPnt(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, 1:IDX_SNR);
+        idxGrpMod(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt,   IDX_IDM);
+
+        % redo cluster
+        %idxGrpOri(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt,   IDX_IDO);
+        strAlgAll = cellstr(get(handles.popupmenuAlgo,'String'));
+        idxAlg    =         get(handles.popupmenuAlgo,'Value' ) ;
+        strAlg    = strAlgAll{idxAlg};
+        if strcmp(strAlg, 'dbscan')
+            datCst = pdist2(datPnt, datPnt, @cstCustom);
+            [idxGrpOri, idxKnl] = dbscanMine2(datCst, 10, 1);
+        end
+        if strcmp(strAlg, 'boxCut')
+            idxGrpOri = boxCut(datPnt);
+            idxKnl    = ones(cntPnt, 1);
+        end
+        handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDO) = idxGrpOri;
 
         % convert
         datPnt(:, IDX_ANG) = datPnt(:, IDX_ANG) / pi * 180;
@@ -304,8 +365,8 @@ function pushbuttonDump_Callback(hObject, eventdata, handles)
         fprintf(fpt, '    %-7.2f %-7.2f %-7.2f %-7.2f %02d    %02d    %d\n', [datPnt, idxGrpOri, idxGrpMod, idxGrpOri ~= idxGrpMod]');
         fprintf(fpt, 'END OF FRAME %d', idxFra);
         if sum(idxGrpOri ~= idxGrpMod)
-            numDifM2O = calcDif(idxGrpOri, idxGrpMod); numDifM2OAll = numDifM2OAll + numDifM2O;
-            numDifO2M = calcDif(idxGrpMod, idxGrpOri); numDifO2MAll = numDifO2MAll + numDifO2M;
+            numDifM2O = calcDif(idxGrpOri, idxGrpMod, datPnt, handles); numDifM2OAll = numDifM2OAll + numDifM2O;
+            numDifO2M = calcDif(idxGrpMod, idxGrpOri, datPnt, handles); numDifO2MAll = numDifO2MAll + numDifO2M;
             fprintf(fpt, ' MISMATCH: %d(M2O), %d(O2M)\n', numDifM2O, numDifO2M);
         else
             fprintf(fpt, '\n');
@@ -313,11 +374,11 @@ function pushbuttonDump_Callback(hObject, eventdata, handles)
     end
     fprintf(fpt, 'TOTAL MISMATCH: %d(M2O), %d(O2M)\n', numDifM2OAll, numDifO2MAll);
 
-    % save
-    guidata(hObject, handles);
-
     % after everything
     set(handles.textBusy, 'string', '');
+
+    % save
+    guidata(hObject, handles);
 % end of pushbuttonDump_Callback
 
 function pushbuttonUp_Callback(hObject, eventdata, handles)
@@ -325,14 +386,14 @@ function pushbuttonUp_Callback(hObject, eventdata, handles)
     idxFra = str2double(idxFra);
     idxFra = min(handles.idxFraMax, max(handles.idxFraMin, idxFra - 1));
     set(handles.editCur, 'string', num2str(idxFra));
-    logAftGrp(handles);
     if get(handles.radiobuttonPlayBack, 'value')
-        drawAftGrp(handles, 0);
-        drawAftGrp(handles, 1);
+        handles = drawAftGrp(handles, 0);
+        handles = drawAftGrp(handles, 1);
     else
         drawBfrGrp(handles);
-        drawAftGrp(handles, 1);
+        handles = drawAftGrp(handles, 1);
     end
+    logAftGrp(handles);
     drawnow;
     guidata(hObject, handles);
 % end of pushbuttonUp_Callback
@@ -342,14 +403,14 @@ function pushbuttonDown_Callback(hObject, eventdata, handles)
     idxFra = str2double(idxFra);
     idxFra = min(handles.idxFraMax, max(handles.idxFraMin, idxFra + 1));
     set(handles.editCur, 'string', num2str(idxFra));
-    logAftGrp(handles);
     if get(handles.radiobuttonPlayBack, 'value')
-        drawAftGrp(handles, 0);
-        drawAftGrp(handles, 1);
+        handles = drawAftGrp(handles, 0);
+        handles = drawAftGrp(handles, 1);
     else
         drawBfrGrp(handles);
-        drawAftGrp(handles, 1);
+        handles = drawAftGrp(handles, 1);
     end
+    logAftGrp(handles);
     drawnow;
     guidata(hObject, handles);
 % end of pushbuttonDown_Callback
@@ -362,11 +423,11 @@ function tableGroup_CellSelectionCallback(hObject, eventdata, handles)
         cntPnt = handles.cntPntAll(idxFra + 1);
         if 1 <= idxFlt && idxFlt <= cntPnt
             if get(handles.radiobuttonPlayBack, 'value')
-                drawAftGrp(handles, 0);
-                drawAftGrp(handles, 1);
+                handles = drawAftGrp(handles, 0);
+                handles = drawAftGrp(handles, 1);
             else
                 drawBfrGrp(handles);
-                drawAftGrp(handles, 1);
+                handles = drawAftGrp(handles, 1);
             end
             drawExtra(handles, idxFlt);
             drawnow;
@@ -384,11 +445,11 @@ function tableGroup_CellEditCallback(hObject, eventdata, handles)
     if 1 <= idxFlt && idxFlt <= cntPnt
         handles.datPntAll(idxFra + 1, idxFlt, IDX_IDM) = eventdata.NewData;
         if get(handles.radiobuttonPlayBack, 'value')
-            drawAftGrp(handles, 0);
-            drawAftGrp(handles, 1);
+            handles = drawAftGrp(handles, 0);
+            handles = drawAftGrp(handles, 1);
         else
             drawBfrGrp(handles);
-            drawAftGrp(handles, 1);
+            handles = drawAftGrp(handles, 1);
         end
         drawExtra(handles, idxFlt);
         drawnow;
@@ -401,6 +462,9 @@ function radiobuttonTx1_Callback(hObject, eventdata, handles)
 
 function radiobuttonTx2_Callback(hObject, eventdata, handles)
 % end of radiobuttonTx2_Callback
+
+function radiobuttonFilter_Callback(hObject, eventdata, handles)
+% end of radiobuttonFilter_Callback
 
 function textMin_CreateFcn(hObject, eventdata, handles)
 % end of textMin_CreateFcn
@@ -416,11 +480,11 @@ function textMax_DeleteFcn(hObject, eventdata, handles)
 
 function radiobuttonPlayBack_Callback(hObject, eventdata, handles)
     if get(handles.radiobuttonPlayBack, 'value')
-        drawAftGrp(handles, 0);
-        drawAftGrp(handles, 1);
+        handles = drawAftGrp(handles, 0);
+        handles = drawAftGrp(handles, 1);
     else
         drawBfrGrp(handles);
-        drawAftGrp(handles, 1);
+        handles = drawAftGrp(handles, 1);
     end
     drawnow;
     guidata(hObject, handles);
@@ -432,14 +496,14 @@ function togglebuttonRun_Callback(hObject, eventdata, handles)
         idxFra = str2double(idxFra);
         idxFra = min(handles.idxFraMax, max(handles.idxFraMin, idxFra + 1));
         set(handles.editCur, 'string', num2str(idxFra));
-        logAftGrp(handles);
         if get(handles.radiobuttonPlayBack, 'value')
-            drawAftGrp(handles, 0);
-            drawAftGrp(handles, 1);
+            handles = drawAftGrp(handles, 0);
+            handles = drawAftGrp(handles, 1);
         else
             drawBfrGrp(handles);
-            drawAftGrp(handles, 1);
+            handles = drawAftGrp(handles, 1);
         end
+        logAftGrp(handles);
         drawnow;
         if idxFra == handles.idxFraMax || get(handles.togglebuttonRun, 'value') == 0 || ~isempty(get(handles.textBusy, 'string'))
             set(handles.togglebuttonRun, 'value', 0);
@@ -453,31 +517,31 @@ function togglebuttonRun_Callback(hObject, eventdata, handles)
 %%*** MY FUNCTION **************************************************************
 function logAftGrp(handles)
     try
-        % parameter
-        IDX_RNG = 1;
-        IDX_VEL = 2;
-        IDX_ANG = 3;
-        IDX_SNR = 4;
-        IDX_IDO = 5;
-        IDX_KNL = 6;
-        IDX_IDM = 7;
+    % parameter
+    IDX_RNG = 1;
+    IDX_VEL = 2;
+    IDX_ANG = 3;
+    IDX_SNR = 4;
+    IDX_IDO = 5;
+    IDX_KNL = 6;
+    IDX_IDM = 7;
 
-        % variable
-        idxFra         = get(handles.editCur, 'string');
-        idxFra         = str2double(idxFra);
-        cntPnt         = handles.cntPntAll(idxFra + 1);
-        datPnt         = ones(cntPnt, IDX_SNR);
-        idxGrpOri      = ones(cntPnt, 1);
-        idxGrpMod      = ones(cntPnt, 1);
-        datPnt   (:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, 1:IDX_SNR);
-        idxGrpOri(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDO);
-        idxGrpMod(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDM);
+    % variable
+    idxFra         = get(handles.editCur, 'string');
+    idxFra         = str2double(idxFra);
+    cntPnt         = handles.cntPntAll(idxFra + 1);
+    datPnt         = ones(cntPnt, IDX_SNR);
+    idxGrpOri      = ones(cntPnt, 1);
+    idxGrpMod      = ones(cntPnt, 1);
+    datPnt   (:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, 1:IDX_SNR);
+    idxGrpOri(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDO);
+    idxGrpMod(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDM);
 
-        % convert
-        datPnt(:, IDX_ANG) = datPnt(:, IDX_ANG) / pi * 180;
+    % convert
+    datPnt(:, IDX_ANG) = datPnt(:, IDX_ANG) / pi * 180;
 
-        % log
-        set(handles.tableGroup, 'data', [datPnt, idxGrpOri, idxGrpMod]);
+    % log
+    set(handles.tableGroup, 'data', [datPnt, idxGrpOri, idxGrpMod]);
     end
 % end of logAftGrp
 
@@ -521,7 +585,7 @@ function drawBfrGrp(handles)
     end
 % end of drawBfrGrp
 
-function drawAftGrp(handles, flgMod)
+function [handles] = drawAftGrp(handles, flgMod)
     try
     % parameter
     IDX_RNG = 1;
@@ -533,19 +597,34 @@ function drawAftGrp(handles, flgMod)
     IDX_IDM = 7;
 
     % variables
-        idxFra      = get(handles.editCur, 'string');
-        idxFra      = str2double(idxFra);
-        cntPnt      = handles.cntPntAll(idxFra + 1);
-        datPnt      = ones(cntPnt, IDX_SNR);
-        idxGrp      = ones(cntPnt, 1);
+       idxFra      = get(handles.editCur, 'string');
+       idxFra      = str2double(idxFra);
+       cntPnt      = handles.cntPntAll(idxFra + 1);
+       datPnt      = ones(cntPnt, IDX_SNR);
+       idxGrp      = ones(cntPnt, 1);
     idxGrpOri      = ones(cntPnt, 1);
     idxGrpMod      = ones(cntPnt, 1);
-        idxKnl      = ones(cntPnt, 1);
-        datPnt(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, 1:IDX_SNR);
-    idxGrpOri(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt,   IDX_IDO);
-        idxKnl(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt,   IDX_KNL);
+       idxKnl      = ones(cntPnt, 1);
+       datPnt(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, 1:IDX_SNR);
+       idxKnl(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt,   IDX_KNL);
     idxGrpMod(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt,   IDX_IDM);
 
+    % redo cluster
+    %idxGrpOri(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt,   IDX_IDO);
+    strAlgAll = cellstr(get(handles.popupmenuAlgo,'String'));
+    idxAlg    =         get(handles.popupmenuAlgo,'Value' ) ;
+    strAlg    = strAlgAll{idxAlg};
+    if strcmp(strAlg, 'dbscan')
+        datCst = pdist2(datPnt, datPnt, @cstCustom);
+        [idxGrpOri, idxKnl] = dbscanMine2(datCst, 10, 1);
+    end
+    if strcmp(strAlg, 'boxCut')
+        idxGrpOri = boxCut(datPnt);
+        idxKnl    = ones(cntPnt, 1);
+    end
+    handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDO) = idxGrpOri;
+
+    % redirect
     if flgMod
         idxGrp = idxGrpMod;
     else
@@ -554,7 +633,7 @@ function drawAftGrp(handles, flgMod)
 
     if flgMod
         if sum(idxGrpOri ~= idxGrpMod)
-            set(handles.textBusy, 'string', ['dif: ', num2str(calcDif(idxGrpOri, idxGrp)), ',', num2str(calcDif(idxGrp, idxGrpOri))]);
+            set(handles.textBusy, 'string', ['dif: ', num2str(calcDif(idxGrpOri, idxGrp, datPnt, handles)), ',', num2str(calcDif(idxGrp, idxGrpOri, datPnt, handles))]);
         else
             set(handles.textBusy, 'string', '');
         end
@@ -616,11 +695,25 @@ function drawExtra(handles, idxFlt)
     end
 % end of drawExtra
 
-function [numDif] = calcDif(datOri, datMod)
+function [numDif] = calcDif(datOri, datMod, datPnt, handles)
+    IDX_RNG = 1;
+    IDX_VEL = 2;
+    IDX_ANG = 3;
+    IDX_SNR = 4;
     numDif = 0;
     for idxMod = min(datMod):max(datMod)
         % get current group
         idxGrp = datMod == idxMod;
+
+        % filter
+        if get(handles.radiobuttonFilter, 'value')
+            idxGrp = idxGrp & datPnt(:,IDX_RNG) <= str2double(get(handles.editBoundaryRng  ,'string'))    ...
+                            & datPnt(:,IDX_VEL) >= str2double(get(handles.editBoundaryVelDn,'string'))    ...
+                            & datPnt(:,IDX_VEL) <= str2double(get(handles.editBoundaryVelUp,'string'))    ...
+                            & datPnt(:,IDX_ANG) <= str2double(get(handles.editBoundaryAng  ,'string')) / 180 * pi;
+        end
+
+        % find corresponding groups
         datGrpOri = datOri(idxGrp);
 
         % find the most largest hitting group in ori
