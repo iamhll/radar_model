@@ -64,6 +64,17 @@ function editOutput_CreateFcn(hObject, eventdata, handles)
     end
 % end of editOutput_CreateFcn
 
+function popupmenuAlgo_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+% end of popupmenu1_CreateFcn
+
+function popupmenuAlgo_Callback(hObject, eventdata, handles)
+    % Hints: contents = cellstr(get(hObject,'String')) returns popupmenuAlgo contents as cell array
+    %        contents{get(hObject,'Value')} returns selected item from popupmenuAlgo
+% end of popupmenu1_Callback
+
 function pushbuttonload_Callback(hObject, eventdata, handles)
     % before everything
     set(handles.textBusy, 'string', 'busy');
@@ -203,11 +214,20 @@ function pushbuttonload_Callback(hObject, eventdata, handles)
         datPntFra(:, IDX_ANG) = datPntFra(:, IDX_ANG) / 180 * pi;
 
         % cluster
+        strAlgAll = cellstr(get(handles.popupmenuAlgo,'String'));
+        idxAlg    =         get(handles.popupmenuAlgo,'Value' ) ;
+        strAlg    = strAlgAll{idxAlg};
         if ~ get(handles.radiobuttonPlayBack, 'value')
-            datCstFra = pdist2(datPntFra, datPntFra, @cstCustom);
-            %[idxGrpFra, idxKnlFra] = dbscan     (datCstFra, 10, 1, 'distance', 'precomputed');
-            %[idxGrpFra, idxKnlFra] = dbscanMine1(datCstFra, 10, 1);
-            [idxGrpFra, idxKnlFra] = dbscanMine2(datCstFra, 10, 1);
+            if strcmp(strAlg, 'dbscan')
+                datCstFra = pdist2(datPntFra, datPntFra, @cstCustom);
+                %[idxGrpFra, idxKnlFra] = dbscan     (datCstFra, 10, 1, 'distance', 'precomputed');
+                %[idxGrpFra, idxKnlFra] = dbscanMine1(datCstFra, 10, 1);
+                [idxGrpFra, idxKnlFra] = dbscanMine2(datCstFra, 10, 1);
+            end
+            if strcmp(strAlg, 'boxCut')
+                idxGrpFra = boxCut(datPntFra);
+                idxKnlFra = ones(cntPntFra, 1);
+            end
         end
 
         % save
