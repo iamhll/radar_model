@@ -101,6 +101,10 @@ else
     [fileName, filePath] = uigetfile({'*.csv'});
 end
 handles.filePath = filePath;
+if fileName == 0
+    set(handles.editFileName, 'string', 'NO file is opened')
+    return
+end
 set(handles.editFileName, 'string', fileName)
 fpt = fopen([filePath, fileName], 'r');
 
@@ -207,7 +211,7 @@ while (1)
             datPntFra = datPntFra(1:cntPntFra, :);
         else
             for i = 1:cntPntFra
-                if datPntFra(i,1) == 1024
+                if datPntFra(i,1) == 1024 || i == cntPntFra
                     if get(handles.radiobuttonTx1, 'value')
                         datPntFra = datPntFra(1:i-1, :);
                         cntPntFra = i - 1;
@@ -356,6 +360,7 @@ guidata(hObject, handles);
 
 %%*** MY FUNCTION ******************************************************
 function logAftGrp(handles)
+try
 % parameter
 IDX_RNG = 1;
 IDX_VEL = 2;
@@ -381,9 +386,11 @@ datPnt(:, IDX_ANG) = datPnt(:, IDX_ANG) / pi * 180;
 
 % log
 set(handles.tableGroup, 'data', [datPnt, idxGrpOri, idxGrpMod]);
+end
 
 
 function drawBfrGrp(handles)
+try
 % parameter
 IDX_RNG = 1;
 IDX_VEL = 2;
@@ -419,9 +426,11 @@ title(['before cluster (', num2str(idxFra), ')']);
 %axis equal;
 axis([-20, 20, 0, 100]);
 grid on;
+end
 
 
 function drawAftGrp(handles, flgMod)
+try
 % parameter
 IDX_RNG = 1;
 IDX_VEL = 2;
@@ -437,19 +446,26 @@ IDX_IDM = 7;
     cntPnt      = handles.cntPntAll(idxFra + 1);
     datPnt      = ones(cntPnt, IDX_SNR);
     idxGrp      = ones(cntPnt, 1);
+ idxGrpOri      = ones(cntPnt, 1);
+ idxGrpMod      = ones(cntPnt, 1);
     idxKnl      = ones(cntPnt, 1);
     datPnt(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, 1:IDX_SNR);
-if flgMod
-    idxGrp(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDM);
-else
-    idxGrp(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDO);
-end
-    idxKnl(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_KNL);
+ idxGrpOri(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt,   IDX_IDO);
+    idxKnl(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt,   IDX_KNL);
+ idxGrpMod(:,:) = handles.datPntAll(idxFra + 1, 1:cntPnt,   IDX_IDM);
 
-if (sum(handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDM) ~= handles.datPntAll(idxFra + 1, 1:cntPnt, IDX_IDO)))
-    set(handles.textBusy, 'string', 'diff');
+if flgMod
+    idxGrp = idxGrpMod;
 else
-    set(handles.textBusy, 'string', '');
+    idxGrp = idxGrpOri;
+end
+
+if flgMod
+    if sum(idxGrpOri ~= idxGrpMod)
+        set(handles.textBusy, 'string', ['dif: ', num2str(calcDif(idxGrpOri, idxGrp)), ',', num2str(calcDif(idxGrp, idxGrpOri))]);
+    else
+        set(handles.textBusy, 'string', '');
+    end
 end
 
 % plot
@@ -477,9 +493,11 @@ title(['after cluster (', num2str(idxFra), ')']);
 %axis equal;
 axis([-20, 20, 0, 100]);
 grid on;
+end
 
 
 function drawExtra(handles, idxFlt)
+try
 % parameter
 IDX_RNG = 1;
 IDX_VEL = 2;
@@ -503,6 +521,28 @@ plot(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)), datPnt(idxFlt,IDX_RN
 axes(handles.axesOutput);
 hold on;
 plot(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)), datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), 'xk', 'markersiz', 10);
+end
+
+
+function [numDif] = calcDif(datOri, datMod)
+numDif = 0;
+for idxMod = min(datMod):max(datMod)
+    % get current group
+    idxGrp = datMod == idxMod;
+    datGrpOri = datOri(idxGrp);
+
+    % find the most largest hitting group in ori
+    cntHitBst = 0;
+    for idxOri = min(datGrpOri):max(datGrpOri)
+        cntHitCur = sum(datGrpOri == idxOri);
+        if cntHitCur > cntHitBst
+            cntHitBst = cntHitCur;
+        end
+    end
+
+    % accumulate
+    numDif = numDif + sum(idxGrp) - cntHitBst;
+end
 
 
 % --- Executes on button press in pushbuttonUp.
@@ -537,7 +577,7 @@ set(handles.textBusy, 'string', 'busy');
 % open file
 fileName = get(handles.editFileName, 'string');
 fpt = fopen([handles.filePath, fileName, '.group.log'], 'w');
-fprintf(fpt, '    %-7s %-7s %-7s %-7s %-2s %-2s\n', 'RNG', 'VEL', 'ANG', 'SNR', 'ID', 'ID (modified)');
+fprintf(fpt, '    %-7s %-7s %-7s %-7s %-5s %-5s %s\n', 'RNG', 'VEL', 'ANG', 'SNR', 'ID(O)', 'ID(M)', 'CHANGED');
 
 % parameter
 IDX_RNG = 1;
@@ -549,6 +589,8 @@ IDX_KNL = 6;
 IDX_IDM = 7;
 
 % main loop
+numDifM2OAll = 0;
+numDifO2MAll = 0;
 for idxFra = handles.idxFraMin:handles.idxFraMax
     % log
     set(handles.editCur, 'string', num2str(idxFra));
@@ -568,9 +610,17 @@ for idxFra = handles.idxFraMin:handles.idxFraMax
 
     % dump
     fprintf(fpt, 'BGN OF FRAME %d\n', idxFra);
-    fprintf(fpt, '    %-7.2f %-7.2f %-7.2f %-7.2f %02d %02d\n', [datPnt, idxGrpOri, idxGrpMod]');
-    fprintf(fpt, 'END OF FRAME %d\n', idxFra);
+    fprintf(fpt, '    %-7.2f %-7.2f %-7.2f %-7.2f %02d    %02d    %d\n', [datPnt, idxGrpOri, idxGrpMod, idxGrpOri ~= idxGrpMod]');
+    fprintf(fpt, 'END OF FRAME %d', idxFra);
+    if sum(idxGrpOri ~= idxGrpMod)
+        numDifM2O = calcDif(idxGrpOri, idxGrpMod); numDifM2OAll = numDifM2OAll + numDifM2O;
+        numDifO2M = calcDif(idxGrpMod, idxGrpOri); numDifO2MAll = numDifO2MAll + numDifO2M;
+        fprintf(fpt, ' MISMATCH: %d(M2O), %d(O2M)\n', numDifM2O, numDifO2M);
+    else
+        fprintf(fpt, '\n');
+    end
 end
+fprintf(fpt, 'TOTAL MISMATCH: %d(M2O), %d(O2M)\n', numDifM2OAll, numDifO2MAll);
 
 % save
 guidata(hObject, handles);
@@ -709,7 +759,7 @@ while 1
         drawAftGrp(handles, 1);
     end
     drawnow;
-    if idxFra == handles.idxFraMax || get(handles.togglebuttonRun, 'value') == 0 || strcmp(get(handles.textBusy, 'string'), 'diff')
+    if idxFra == handles.idxFraMax || get(handles.togglebuttonRun, 'value') == 0 || ~isempty(get(handles.textBusy, 'string'))
         set(handles.togglebuttonRun, 'value', 0);
         break;
     end
