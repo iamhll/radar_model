@@ -412,6 +412,8 @@ function pushbuttonDump_Callback(hObject, eventdata, handles)
         end
     end
     fprintf(fpt, 'TOTAL MISMATCH: %d(M2O), %d(O2M)\n', numDifM2OAll, numDifO2MAll);
+    set(handles.textM2O, 'string', num2str(numDifM2OAll));
+    set(handles.textO2M, 'string', num2str(numDifO2MAll));
 
     % after everything
     set(handles.textBusy, 'string', '');
