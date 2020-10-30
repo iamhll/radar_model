@@ -262,7 +262,7 @@ function pushbuttonload_Callback(hObject, eventdata, handles)
         if ~ get(handles.radiobuttonPlayBack, 'value')
             strAlgAll = cellstr(get(handles.popupmenuAlgo,'String'));
             idxAlg    =         get(handles.popupmenuAlgo,'Value' ) ;
-            strAlg    = strAlgAll{idxAlg};            
+            strAlg    = strAlgAll{idxAlg};
             if strcmp(strAlg, 'dbscan')
                 datCstFra = pdist2(datPntFra, datPntFra, @cstCustom);
                 %[idxGrpFra, idxKnlFra] = dbscan     (datCstFra, 10, 1, 'distance', 'precomputed');
@@ -314,7 +314,10 @@ function pushbuttonDump_Callback(hObject, eventdata, handles)
 
     % open file
     fileName = get(handles.editFileName, 'string');
-    fpt = fopen([handles.filePath, fileName, '.group.log'], 'w');
+    strAlgAll = cellstr(get(handles.popupmenuAlgo,'String'));
+    idxAlg    =         get(handles.popupmenuAlgo,'Value' ) ;
+    strAlg    = strAlgAll{idxAlg};
+    fpt = fopen([handles.filePath, fileName, '.', strAlg, '.group.log'], 'w');
     fprintf(fpt, '    %-7s %-7s %-7s %-7s %-5s %-5s %s\n', 'RNG', 'VEL', 'ANG', 'SNR', 'ID(O)', 'ID(M)', 'CHANGED');
 
     % parameter
