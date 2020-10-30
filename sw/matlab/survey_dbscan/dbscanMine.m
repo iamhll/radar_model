@@ -101,6 +101,42 @@ function editBoundaryAng_CreateFcn(hObject, eventdata, handles)
     end
 % end of editBoundaryAng_CreateFcn
 
+function editShowY_Callback(hObject, eventdata, handles)
+    if get(handles.radiobuttonPlayBack, 'value')
+        handles = drawAftGrp(handles, 0);
+        handles = drawAftGrp(handles, 1);
+    else
+        drawBfrGrp(handles);
+        handles = drawAftGrp(handles, 1);
+    end
+    drawnow;
+    guidata(hObject, handles);
+% end of editShowY_Callback
+
+function editShowY_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+% end of editShowY_CreateFcn
+
+function editShowX_Callback(hObject, eventdata, handles)
+    if get(handles.radiobuttonPlayBack, 'value')
+        handles = drawAftGrp(handles, 0);
+        handles = drawAftGrp(handles, 1);
+    else
+        drawBfrGrp(handles);
+        handles = drawAftGrp(handles, 1);
+    end
+    drawnow;
+    guidata(hObject, handles);
+% end of editShowX_Callback
+
+function editShowX_CreateFcn(hObject, eventdata, handles)
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+% end of editShowX_CreateFcn
+
 function popupmenuAlgo_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
@@ -570,6 +606,8 @@ function drawBfrGrp(handles)
     axes(handles.axesInput);
     cla;
     hold on;
+    showX = str2num(get(handles.editShowX, 'string'));
+    showY = str2num(get(handles.editShowY, 'string'));
     % +
     idxFlt = datPnt(:,IDX_VEL) == 0;
     plot(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)), datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), 'og');
@@ -583,7 +621,7 @@ function drawBfrGrp(handles)
     %title('before cluster (color is used to indicate speed)');
     title(['before cluster (', num2str(idxFra), ')']);
     %axis equal;
-    axis([-20, 20, 0, 100]);
+    axis([-showX, showX, 0, showY]);
     grid on;
     end
 % end of drawBfrGrp
@@ -650,10 +688,12 @@ function [handles] = drawAftGrp(handles, flgMod)
     end
     cla;
     hold on;
+    showX = str2num(get(handles.editShowX, 'string'));
+    showY = str2num(get(handles.editShowY, 'string'));
     for i = 1:max(idxGrp)
         datPntPosX = datPnt(:,IDX_RNG) .* sin(datPnt(:,IDX_ANG));
         datPntPosY = datPnt(:,IDX_RNG) .* cos(datPnt(:,IDX_ANG));
-        idxFlt = idxGrp == i & -20 <= datPntPosX & datPntPosX <= 20 & 0 <= datPntPosY & datPntPosY <= 100;
+        idxFlt = idxGrp == i & -showX <= datPntPosX & datPntPosX <= showX & 0 <= datPntPosY & datPntPosY <= showY;
         plot(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)), datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), 'o');
         idxFlt = find(idxFlt, 1);
         text(datPnt(idxFlt,IDX_RNG) .* sin(datPnt(idxFlt,IDX_ANG)) + 1, datPnt(idxFlt,IDX_RNG) .* cos(datPnt(idxFlt,IDX_ANG)), num2str(idxGrp(idxFlt)));
@@ -665,7 +705,7 @@ function [handles] = drawAftGrp(handles, flgMod)
     % set figure
     title(['after cluster (', num2str(idxFra), ')']);
     %axis equal;
-    axis([-20, 20, 0, 100]);
+    axis([-showX, showX, 0, showY]);
     grid on;
     end
 % end of drawAftGrp
